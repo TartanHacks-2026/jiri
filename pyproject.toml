@@ -36,6 +36,10 @@ dependencies = [
 
     # LLM
     "openai>=1.60.0",
+
+    # Dedalus Labs SDK and MCP
+    "dedalus-labs>=0.1.0",
+    "dedalus-mcp>=0.1.0",
 ]
 
 [project.optional-dependencies]
