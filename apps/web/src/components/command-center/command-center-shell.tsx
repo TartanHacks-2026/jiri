@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCommandCenterConnection } from "@/hooks/use-command-center-connection";
 import { useCommandCenterStore } from "@/store/command-center-store";
+import { useShallow } from "zustand/react/shallow";
 
 export function CommandCenterShell() {
   const {
@@ -32,23 +33,25 @@ export function CommandCenterShell() {
     lastError,
     marketplaceOpen,
     setMarketplaceOpen,
-  } = useCommandCenterStore((state) => ({
-    sessionId: state.sessionId,
-    connectionStatus: state.connectionStatus,
-    phase: state.phase,
-    phaseMessage: state.phaseMessage,
-    transcript: state.transcript,
-    partialTranscript: state.partialTranscript,
-    planGoal: state.planGoal,
-    planSteps: state.planSteps,
-    trace: state.trace,
-    tools: state.tools,
-    artifacts: state.artifacts,
-    receipts: state.receipts,
-    lastError: state.lastError,
-    marketplaceOpen: state.marketplaceOpen,
-    setMarketplaceOpen: state.setMarketplaceOpen,
-  }));
+  } = useCommandCenterStore(
+    useShallow((state) => ({
+      sessionId: state.sessionId,
+      connectionStatus: state.connectionStatus,
+      phase: state.phase,
+      phaseMessage: state.phaseMessage,
+      transcript: state.transcript,
+      partialTranscript: state.partialTranscript,
+      planGoal: state.planGoal,
+      planSteps: state.planSteps,
+      trace: state.trace,
+      tools: state.tools,
+      artifacts: state.artifacts,
+      receipts: state.receipts,
+      lastError: state.lastError,
+      marketplaceOpen: state.marketplaceOpen,
+      setMarketplaceOpen: state.setMarketplaceOpen,
+    })),
+  );
 
   const { startLive, stopLive, runReplay, sendUserText } = useCommandCenterConnection();
 
