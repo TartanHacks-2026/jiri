@@ -50,6 +50,7 @@ interface CommandCenterState {
   setMode: (mode: "idle" | "live" | "replay") => void;
   setConnectionStatus: (status: ConnectionStatus) => void;
   addLocalUserText: (text: string) => void;
+  addAssistantText: (text: string) => void;
   ingestEvent: (event: JiriInboundEvent) => void;
   reset: () => void;
 }
@@ -95,6 +96,17 @@ export const useCommandCenterStore = create<CommandCenterState>((set, get) => ({
       transcript: boundedPush(get().transcript, {
         id: `local-user-${now}`,
         role: "user",
+        text,
+        ts: now,
+      }),
+    });
+  },
+  addAssistantText: (text) => {
+    const now = Date.now();
+    set({
+      transcript: boundedPush(get().transcript, {
+        id: `local-assistant-${now}`,
+        role: "assistant",
         text,
         ts: now,
       }),

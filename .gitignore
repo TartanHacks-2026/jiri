@@ -43,6 +43,8 @@ node_modules/
 .next/
 *.tsbuildinfo
 npm-debug.log*
+apps/web/.env.local
+apps/agent-runtime/.agentuity/
 
 # Docker
 .docker/
