@@ -68,6 +68,41 @@ curl http://localhost:8000/health/ready
 open http://localhost:8000/docs
 ```
 
+## 🤖 Dedalus SDK & MCP Integration
+
+Jiri includes integration with **Dedalus Labs SDK** for AI-powered tool execution using the Model Context Protocol (MCP).
+
+### Quick Start
+
+```bash
+# Setup Dedalus
+./setup_dedalus.sh
+
+# Add your API key to .env
+# DEDALUS_API_KEY=your-api-key
+
+# Run demo
+python dedalus_demo.py
+
+# Or see examples
+python example_usage.py
+```
+
+### Documentation
+
+- **Quick Start**: [DEDALUS_QUICKSTART.md](DEDALUS_QUICKSTART.md) - Get running in 5 minutes
+- **Full Docs**: [DEDALUS_README.md](DEDALUS_README.md) - Complete guide with examples
+- **Dedalus Labs**: [docs.dedaluslabs.ai](https://docs.dedaluslabs.ai)
+
+### What's Included
+
+- `dedalus.py` - Dedalus Labs SDK wrapper for easy AI integration
+- `mcp_server.py` - MCP server with example tools (log_hello, add_numbers, etc.)
+- `dedalus_demo.py` - Full integration demo
+- `example_usage.py` - Simple examples to get started
+
+The MCP server includes tools that log messages, add numbers, and provide server info. You can easily add your own tools using the `@tool` decorator.
+
 ## 📱 Siri Shortcut Setup
 
 See [docs/shortcut_contract.md](docs/shortcut_contract.md) for complete build guide.
