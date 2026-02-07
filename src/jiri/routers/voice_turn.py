@@ -62,6 +62,8 @@ class TurnResponse(BaseModel):
     session_id: str = Field(..., description="Session ID for next request")
     reply_text: str = Field(..., description="Agent's spoken response")
     end_conversation: bool = Field(default=False, description="True if conversation should end")
+    handoff_to_app: bool = Field(default=False, description="True if app should open for visual interaction")
+    deep_link_url: Optional[str] = Field(default=None, description="Deep link to open app with context")
     debug: DebugInfo = Field(default_factory=DebugInfo)
 
 
@@ -92,14 +94,28 @@ async def turn(request: TurnRequest) -> TurnResponse:
     # Process through agent
     reply_text, tool_trace, mode = await agent.process_turn(session_id, request.user_text)
 
+    # Check if we should handoff to app
+    from jiri.orchestrator.handoff_decision import HandoffDecision
+    
+    should_handoff, handoff_reason = HandoffDecision.should_handoff(request.user_text)
+    deep_link = None
+    
+    if should_handoff:
+        deep_link = HandoffDecision.generate_deep_link(session_id)
+        logger.info(f"🔗 Handoff triggered: {handoff_reason}")
+        # Modify reply to indicate app opening
+        reply_text = f"{reply_text} Opening the app for you..."
+
     latency_ms = int((time.time() - start_time) * 1000)
 
     return TurnResponse(
         session_id=session_id,
         reply_text=reply_text,
         end_conversation=False,
+        handoff_to_app=should_handoff,
+        deep_link_url=deep_link,
         debug=DebugInfo(
-            tool_trace=tool_trace,
+            tool_trace=tool_trace + ([handoff_reason] if should_handoff else []),
             latency_ms=latency_ms,
             mode=mode,
         ),

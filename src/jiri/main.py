@@ -18,11 +18,8 @@ from jiri.core.config import get_settings
 from jiri.core.database import close_db, init_db
 from jiri.core.logging import RequestLogger, logger, setup_logging
 from jiri.core.redis_client import close_redis, init_redis
-<<<<<<< HEAD
-from jiri.core.redis_client import close_redis, init_redis
-from jiri.routers import health, voice_turn
-=======
-from jiri.routers import health, turn
+from jiri.routers import health, session, voice_turn
+
 from session.store import session_store
 >>>>>>> refs/remotes/origin/main
 
