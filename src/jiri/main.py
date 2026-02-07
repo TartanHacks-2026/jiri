@@ -18,7 +18,8 @@ from jiri.core.config import get_settings
 from jiri.core.database import close_db, init_db
 from jiri.core.logging import RequestLogger, logger, setup_logging
 from jiri.core.redis_client import close_redis, init_redis
-from jiri.routers import health
+from jiri.core.redis_client import close_redis, init_redis
+from jiri.routers import health, voice_turn
 
 
 @asynccontextmanager
@@ -109,6 +110,7 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(health.router)
+    app.include_router(voice_turn.router)
 
     return app
 
