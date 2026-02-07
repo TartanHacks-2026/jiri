@@ -1,74 +1,143 @@
-# Jiri - Voice-First Agentic Bridge
+# Jiri 🎙️
 
-> Talk to Siri, it calls our backend agent, gets a reply, speaks it back, and keeps context across turns using a session_id.
+**Voice-first agentic bridge with MCP tool discovery**
 
-## Quick Start
+A high-fidelity, low-latency voice assistant that connects to the Model Context Protocol ecosystem for dynamic tool execution.
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11+ (3.13 recommended)
+- Docker & Docker Compose
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+
+### 1. Clone and Setup
 
 ```bash
-# 1. Clone and setup
+# Clone the repository
 git clone https://github.com/TartanHacks-2026/jiri.git
 cd jiri
 
-# 2. Configure environment
+# Copy environment config
 cp .env.example .env
-# Edit .env with your OPENAI_API_KEY
 
-# 3. Run with Docker (recommended for team)
-./run.sh
+# Edit .env with your settings (optional for local dev)
 ```
 
-## API Endpoint
-
-**POST /turn** - Main conversation endpoint
+### 2. Start Infrastructure
 
 ```bash
-curl -X POST http://localhost:8000/turn \
-  -H "Content-Type: application/json" \
-  -d '{"session_id":"","user_text":"hello","client":"shortcut","meta":{"voice":true}}'
+# Start TimescaleDB, Redis, ChromaDB
+docker-compose up -d
+
+# Wait for services to be healthy
+docker-compose ps
 ```
 
-Response:
-```json
-{
-  "session_id": "uuid",
-  "reply_text": "Hey! I'm Jiri. How can I help?",
-  "end_conversation": false
-}
+### 3. Install Dependencies
+
+```bash
+# Using uv (recommended - fast!)
+uv sync
+
+# Or using pip
+pip install -e ".[dev]"
 ```
 
-## Project Structure
+### 4. Run the Backend
+
+```bash
+# Development mode with hot reload
+uv run uvicorn jiri.main:app --reload --port 8000
+
+# Or using Python directly
+python -m jiri.main
+```
+
+### 5. Verify
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Readiness check (tests DB/Redis)
+curl http://localhost:8000/health/ready
+
+# API docs (development only)
+open http://localhost:8000/docs
+```
+
+## 📱 Siri Shortcut Setup
+
+See [docs/shortcut_contract.md](docs/shortcut_contract.md) for complete build guide.
+
+## 📁 Project Structure
 
 ```
 jiri/
 ├── src/
-│   ├── api/           # FastAPI app & /turn endpoint
-│   ├── session/       # Redis-backed session store
-│   └── orchestrator/  # LLM agent & fallback logic
-├── docs/              # API contract & Shortcut guide
-├── tests/             # Unit tests
-├── docker-compose.yml # Container orchestration
-└── run.sh             # One-command startup
+│   ├── jiri/               # Main Backend (Robust Architecture)
+│   │   ├── main.py         # FastAPI entrypoint
+│   │   ├── core/           # Core infrastructure
+│   │   ├── models/         # SQLAlchemy models
+│   │   └── routers/        # API endpoints
+│   ├── api/                # Legacy/Alternative API (to be merged)
+│   ├── session/            # Legacy Session store
+│   └── orchestrator/       # Legacy Orchestrator logic
+├── docker-compose.yml      # Infrastructure services
+├── pyproject.toml          # Python dependencies
+├── alembic/                # Database migrations
+└── tests/                  # Test suite
 ```
 
-## For Team (4 Laptops)
+## 🔧 Configuration
 
-Docker ensures consistent environments:
+All configuration is via environment variables (`.env` file):
+
+| Variable       | Description           | Default                    |
+| -------------- | --------------------- | -------------------------- |
+| `DATABASE_URL` | PostgreSQL connection | `postgresql+asyncpg://...` |
+| `REDIS_URL`    | Redis connection      | `redis://localhost:6379/0` |
+| `API_KEY`      | Service auth key      | `CHANGE_ME_IN_PRODUCTION`  |
+| `DEBUG`        | Enable debug mode     | `true`                     |
+
+## 🐳 Docker Services
+
+| Service     | Port | Description          |
+| ----------- | ---- | -------------------- |
+| TimescaleDB | 5432 | Time-series database |
+| Redis       | 6379 | Session state cache  |
+| ChromaDB    | 8001 | Vector store for RAG |
+
+## 🧪 Development
 
 ```bash
-# Everyone runs the same command
-docker-compose up --build
+# Run linting
+ruff check .
 
-# API available at http://localhost:8000
-# Redis at localhost:6379
+# Run type checking
+mypy src/
+
+# Run tests
+pytest
+
+# Format code
+ruff format .
 ```
 
-## Siri Shortcut Setup
+## 📚 Documentation
 
-See [docs/shortcut_contract.md](docs/shortcut_contract.md) for complete build guide.
+- [PLAN-backend-infra.md](plans/PLAN-backend-infra.md) - Backend infrastructure plan
+- [PLAN-voice-mcp-pipeline.md](plans/PLAN-voice-mcp-pipeline.md) - Voice pipeline plan
+- [agent_docs/](agent_docs/) - Architecture and patterns
 
-## Tech Stack
+## 🔒 Security
 
-- **Python 3.13** + **FastAPI**
-- **Redis** (containerized session store)
-- **OpenAI GPT-4o** (conversation)
-- **Docker Compose** (deployment)
+- API key authentication for all protected endpoints
+- Zero-trust credential injection via Dedalus proxy
+- No secrets in logs or LLM context
+
+## 📄 License
+
+MIT

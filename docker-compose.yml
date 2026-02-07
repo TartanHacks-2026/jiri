@@ -1,39 +1,53 @@
-services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: jiri-api
-    ports:
-      - "${PORT:-8000}:8000"
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - HOST=0.0.0.0
-      - PORT=8000
-    env_file:
-      - .env
-    volumes:
-      - ./src:/app/src:ro
-    depends_on:
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    restart: unless-stopped
-    networks:
-      - jiri-network
+version: "3.9"
 
+services:
+  # TimescaleDB - Time-series optimized PostgreSQL
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: jiri-timescale
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jiri}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jiri_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-jiri}
+    ports:
+      - "${TIMESCALE_PORT:-5432}:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./infra/timescale/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jiri}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ChromaDB - Vector store for RAG
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: jiri-chroma
+    ports:
+      - "${CHROMA_PORT:-8001}:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis - Session state and caching
   redis:
     image: redis:7-alpine
     container_name: jiri-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     volumes:
-      - redis-data:/data
+      - redis_data:/data
+    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -43,9 +57,40 @@ services:
     networks:
       - jiri-network
 
+  # FastAPI Backend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jiri-app
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-jiri}:${POSTGRES_PASSWORD:-jiri_dev_password}@timescaledb:5432/${POSTGRES_DB:-jiri}
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./src:/app/src:ro # Enable hot reload for source code
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chromadb:
+        condition: service_healthy
+    # profiles:
+    #   - full  # Commented out to make it default for now
+    restart: unless-stopped
+    networks:
+      - jiri-network
+
+volumes:
+  timescale_data:
+  chroma_data:
+  redis_data:
+
 networks:
   jiri-network:
     driver: bridge
-
-volumes:
-  redis-data:

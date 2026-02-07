@@ -1,37 +1,52 @@
+# Jiri .gitignore
+
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-venv/
-.venv/
-env/
-.env
 *.egg-info/
 dist/
 build/
+eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-.DS_Store
+
+# Environment
+.env
+!.env.example
+
+# Agent config (internal)
+.agent
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
+.mypy_cache/
 .tox/
 
 # Docker
 .docker/
-
-# Logs
 *.log
-logs/
 
-# Local dev
-.mypy_cache/
-.ruff_cache/
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker overrides (local config)
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
