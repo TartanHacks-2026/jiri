@@ -47,7 +47,7 @@ export function MarketplaceSheet({ open, tools, onClose }: MarketplaceSheetProps
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 200, damping: 24 }}
-            className="fixed right-0 top-0 z-50 h-full w-full max-w-md border-l border-accent/30 bg-background/95 p-4 backdrop-blur-xl"
+            className="fixed right-0 top-0 z-50 h-full w-full max-w-md border-l border-accent/30 bg-[rgb(10,14,20)]/80 p-4 backdrop-blur-2xl shadow-[-20px_0_40px_rgba(0,217,255,0.08)]"
           >
             <div className="mb-4 flex items-center justify-between">
               <div>
@@ -64,42 +64,44 @@ export function MarketplaceSheet({ open, tools, onClose }: MarketplaceSheetProps
             <div className="space-y-2 overflow-auto pb-6">
               {tools.length === 0
                 ? Array.from({ length: 5 }).map((_, index) => (
-                    <Card
-                      key={`sk-${index}`}
-                      className="overflow-hidden border-border/60 bg-background/40 p-3"
-                    >
-                      <div className="h-3 w-28 rounded bg-gradient-to-r from-card via-muted/60 to-card bg-[length:220%_100%] animate-shimmer" />
-                      <div className="mt-2 h-2.5 w-44 rounded bg-gradient-to-r from-card via-muted/60 to-card bg-[length:220%_100%] animate-shimmer" />
-                    </Card>
-                  ))
+                  <Card
+                    key={`sk-${index}`}
+                    className="overflow-hidden border-border/60 bg-background/40 p-3"
+                  >
+                    <div className="h-3 w-28 rounded bg-gradient-to-r from-card via-muted/60 to-card bg-[length:220%_100%] animate-shimmer" />
+                    <div className="mt-2 h-2.5 w-44 rounded bg-gradient-to-r from-card via-muted/60 to-card bg-[length:220%_100%] animate-shimmer" />
+                  </Card>
+                ))
                 : tools.map((tool) => (
-                    <motion.div
-                      key={`${tool.server}-${tool.name}`}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="rounded-lg border border-border/65 bg-card/70 p-3"
-                    >
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <Bot className="h-4 w-4 text-accent" />
-                          <p className="text-sm font-medium text-foreground">{tool.name}</p>
-                        </div>
-                        <Badge variant={statusVariant(tool.status)}>{tool.status}</Badge>
+                  <motion.div
+                    key={`${tool.server}-${tool.name}`}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    whileHover={{ y: -2, boxShadow: "0 4px 20px rgba(0, 217, 255, 0.2)" }}
+                    transition={{ duration: 0.2 }}
+                    className="rounded-lg border border-border/65 bg-card/70 p-3 cursor-pointer"
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-4 w-4 text-accent" />
+                        <p className="text-sm font-medium text-foreground">{tool.name}</p>
                       </div>
+                      <Badge variant={statusVariant(tool.status)}>{tool.status}</Badge>
+                    </div>
 
-                      <p className="mb-2 text-xs text-muted-foreground">{tool.description}</p>
+                    <p className="mb-2 text-xs text-muted-foreground">{tool.description}</p>
 
-                      <div className="mb-2 flex items-center gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-                        <ServerCog className="h-3.5 w-3.5" />
-                        {tool.server}
-                      </div>
+                    <div className="mb-2 flex items-center gap-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                      <ServerCog className="h-3.5 w-3.5" />
+                      {tool.server}
+                    </div>
 
-                      <Button size="sm" variant="secondary" className="w-full">
-                        <Wrench className="mr-1 h-3.5 w-3.5" />
-                        {tool.status === "ready" ? "Enabled" : "Inspect"}
-                      </Button>
-                    </motion.div>
-                  ))}
+                    <Button size="sm" variant="secondary" className="w-full">
+                      <Wrench className="mr-1 h-3.5 w-3.5" />
+                      {tool.status === "ready" ? "Enabled" : "Inspect"}
+                    </Button>
+                  </motion.div>
+                ))}
             </div>
           </motion.aside>
         </>

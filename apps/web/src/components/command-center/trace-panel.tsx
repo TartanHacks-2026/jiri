@@ -16,7 +16,15 @@ function TraceIcon({ type }: { type: TraceLine["type"] }) {
     return <LoaderCircle className="h-4 w-4 animate-spin text-accent" />;
   }
   if (type === "result") {
-    return <CheckCircle2 className="h-4 w-4 text-success" />;
+    return (
+      <motion.div
+        initial={{ rotate: 0 }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <CheckCircle2 className="h-4 w-4 text-success" />
+      </motion.div>
+    );
   }
   if (type === "error") {
     return <AlertTriangle className="h-4 w-4 text-danger" />;

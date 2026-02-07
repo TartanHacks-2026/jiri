@@ -7,7 +7,7 @@ interface LogoJiriProps {
 export function LogoJiri({ className }: LogoJiriProps) {
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <div className="relative h-9 w-9 rounded-lg border border-accent/40 bg-card/90 shadow-glow">
+      <div className="relative h-9 w-9 rounded-lg border border-accent/40 bg-card/90 shadow-glow transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,136,0.6)] hover:scale-105">
         <svg
           viewBox="0 0 36 36"
           className="absolute inset-0 h-full w-full"

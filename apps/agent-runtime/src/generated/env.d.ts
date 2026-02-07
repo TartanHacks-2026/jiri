@@ -6,6 +6,7 @@ declare global {
 	namespace NodeJS {
 		interface ProcessEnv {
 		readonly AGENTUITY_SDK_KEY: string;
+		readonly JIRI_BACKEND_URL: string;
 		}
 	}
 }
