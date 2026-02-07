@@ -10,6 +10,7 @@ Unlike traditional AI assistants with fixed capabilities, Jiri:
 
 - **Starts with zero tools** - Lightweight and fast to initialize
 - **Discovers tools at runtime** - Semantic search finds the right MCP server for any query
+- **Chains tools automatically** - Seamlessly combines multiple tools for complex multi-step tasks
 - **Builds its own toolkit** - Automatically connects to new capabilities as users ask questions
 - **Remembers what works** - LRU cache keeps frequently-used tools loaded
 - **Gets smarter over time** - Usage metrics learn which tools to preload on next startup
@@ -24,6 +25,7 @@ Unlike traditional AI assistants with fixed capabilities, Jiri:
 ### Core Self-Improving Engine
 
 - 🧠 **Runtime Tool Discovery**: Zero configuration - discovers MCP servers on-demand via semantic search
+- 🔗 **Automatic Tool Chaining**: Seamlessly chains multiple tools to complete complex multi-step tasks
 - 🔄 **Continuous Learning**: Usage patterns shape which tools get preloaded on next startup
 - 🗄️ **Intelligent Caching**: LRU cache keeps frequently-used tools loaded for instant reuse
 - ❤️‍🩹 **Adaptive Health**: Failed servers get cooldowns, system learns to avoid broken tools
@@ -154,6 +156,48 @@ Third Session (Even Smarter):
 
 **Key Insight:** Jiri optimizes itself based on YOUR usage patterns. The more you use it, the faster and smarter it becomes.
 
+### Automatic Tool Chaining in Action
+
+Jiri doesn't just discover tools - it intelligently **chains them together** to complete complex workflows:
+
+```
+You: Check the weather in Seattle and email it to john@example.com
+
+1. Router analyzes query → Identifies two needs: weather + email
+2. Discovers weather tool → Executes weather lookup → Gets Seattle weather data
+3. Discovers Gmail tool → Composes and sends email with weather info
+4. Returns confirmation ✅
+
+🔗 Two tools chained automatically from a single natural language request!
+```
+
+```
+You: Get the latest TSLA stock price and tweet about it
+
+1. Router discovers Yahoo Finance → Fetches TSLA stock data
+2. Router discovers Twitter tool → Formats and posts tweet with stock info
+3. Returns tweet confirmation with link ✅
+
+🔗 Finance + Social Media tools working together seamlessly!
+```
+
+```
+You: Find my calendar events today, get weather for those locations, and email summary
+
+1. Calendar tool → Fetches today's events
+2. Weather tool → Gets weather for each event location
+3. Gmail tool → Composes comprehensive email with events + weather
+4. Sends to your inbox ✅
+
+🔗 Three tools chained for a sophisticated multi-step workflow!
+```
+
+**Why This Matters:**
+- No workflow configuration needed
+- Natural language describes the entire process
+- Tools discover and chain automatically
+- Complex tasks become as simple as asking
+
 ### The Self-Improving Engine
 
 **🧠 Semantic Discovery**
@@ -161,6 +205,13 @@ Third Session (Even Smarter):
 - "MSFT stock" automatically matches financial servers
 - "Weather in Seattle" finds meteorology tools
 - No hardcoding, no manual configuration
+
+**🔗 Automatic Tool Chaining**
+- Tools can automatically chain together to accomplish complex tasks
+- "Get weather and email it" → Discovers weather tool → Discovers Gmail → Chains execution
+- "Check my calendar and tweet about it" → Calendar tool → Twitter tool → Seamless flow
+- Multi-step workflows happen automatically based on natural language queries
+- No manual workflow configuration required
 
 **🗄️ Adaptive Caching**
 - LRU (Least Recently Used) keeps your 10 most-used tools loaded
@@ -248,11 +299,63 @@ You: What are Elon Musk's recent tweets?
 You: Show me trending topics on X
 ```
 
+### Email (Gmail)
+
+```
+You: Check my unread emails
+You: Send an email to john@example.com about the project update
+You: Search for emails from Sarah about the meeting
+```
+
+### Calendar
+
+```
+You: What's on my calendar today?
+You: Schedule a meeting with the team for next Tuesday at 2pm
+You: Show me my appointments for this week
+```
+
+### Twitter
+
+```
+You: Post a tweet about our new feature launch
+You: Show me my recent mentions
+You: What's trending on Twitter right now?
+```
+
 ### Places & Travel
 
 ```
 You: Find restaurants near me
 You: Best hotels in San Francisco
+```
+
+### Tool Chaining
+
+Jiri can automatically chain multiple tools together to accomplish complex tasks:
+
+```
+You: Check the weather in Seattle and send it to john@example.com
+
+1. Discovers and uses weather tool → Gets Seattle weather
+2. Discovers and uses Gmail tool → Sends email with weather info
+✅ Both tools executed seamlessly in sequence!
+```
+
+```
+You: Find my calendar events today and tweet about them
+
+1. Uses calendar tool → Fetches today's events
+2. Uses Twitter tool → Posts summary tweet
+✅ Tools chain automatically based on your query!
+```
+
+```
+You: Get MSFT stock price and email it to my team
+
+1. Uses Yahoo Finance tool → Gets MSFT price
+2. Uses Gmail tool → Sends email to recipients
+✅ Multi-tool workflows happen automatically!
 ```
 
 ---
@@ -514,8 +617,13 @@ relative_score_cutoff: float = 0.5  # Lower = include more results
 ### Weather
 - **windsor/open-meteo-mcp**: Weather forecasts, conditions, historical data
 
+### Email & Communication
+- **Gmail MCP**: Read, send, search emails, manage inbox
+- **Calendar MCP**: View, create, update calendar events and appointments
+
 ### Social Media
 - **windsor/x-api-mcp**: Twitter/X API for tweets, users, timelines
+- **Twitter MCP**: Post tweets, read mentions, check trends, manage Twitter account
 
 ### Travel
 - **windsor/foursquare-places-mcp**: Location search, restaurant recommendations
@@ -780,6 +888,9 @@ uv run python dedalus.py --debug
 - [ ] **Predictive preloading**: Anticipate needed tools based on conversation context
 - [ ] **Smart cache strategies**: Priority queues based on usage patterns + query similarity
 - [ ] **Tool performance tracking**: Automatically prefer faster, more reliable servers
+- [ ] **Chain optimization**: Learn common tool chains and optimize their execution order
+- [ ] **Parallel chaining**: Execute independent tool chains concurrently for faster results
+- [ ] **Chain templates**: Auto-suggest common multi-tool workflows based on usage patterns
 
 ### User Experience
 
