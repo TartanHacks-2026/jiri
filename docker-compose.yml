@@ -15,7 +15,7 @@ services:
       - timescale_data:/var/lib/postgresql/data
       - ./infra/timescale/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jiri}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jiri}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -44,7 +44,7 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,11 +81,28 @@ services:
     networks:
       - jiri-network
 
+  # Next.js Frontend
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: jiri-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_AGENTUITY_API_URL=http://agent-runtime:3500
+      - NEXT_PUBLIC_JIRI_WS_URL=ws://app:8000/ws
+      - NEXT_PUBLIC_JIRI_SSE_URL=http://app:8000/events
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - jiri-network
+
 volumes:
   timescale_data:
   chroma_data:
   redis_data:
-
 
 networks:
   jiri-network:

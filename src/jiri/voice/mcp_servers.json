@@ -1,0 +1,17 @@
+[
+  {
+    "server_label": "yahoo-finance",
+    "server_url": "https://mcp.dedaluslabs.ai/tsion/yahoo-finance-mcp",
+    "require_approval": "never"
+  },
+  {
+    "server_label": "ms-learn",
+    "server_url": "https://learn.microsoft.com/api/mcp",
+    "require_approval": "never"
+  },
+  {
+    "server_label": "webpage-extract",
+    "server_url": "https://mcp.dedaluslabs.ai/meanerbeaver/webpage-extract",
+    "require_approval": "never"
+  }
+]
