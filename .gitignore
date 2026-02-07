@@ -50,3 +50,6 @@ Thumbs.db
 docker-compose.override.yml
 docker-compose.*.yml
 !docker-compose.yml
+
+#Folder
+Jiri/
