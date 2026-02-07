@@ -67,12 +67,20 @@ MCP_REGISTRY = [
         "keywords": ["weather", "forecast", "hourly", "historical", "air quality", "UV exposure"],
     },
     {
-        "url": "http://localhost:3333/mcp",
-        "name": "Uber MCP",
-        "category": "Uber",
-        "description": "Retrieve Uber ride information and pricing details for any location",
-        "keywords": ["uber", "ride", "pricing", "location", "transportation", "fare", "estimate"],
+        "url": "http://localhost:3334/mcp",
+        "name": "Gmail MCP",
+        "category": "Email",
+        "description": "Access and manage Gmail messages, threads, labels, and user information",
+        "keywords": ["gmail", "email", "message", "thread", "label", "user", "inbox", "sent", "drafts", "trash"],
     },
+    {
+        "url": "https://mcp.deepwiki.com/mcp",
+        "name": "Deepwiki MCP",
+        "category": "Wiki",
+        "description": "Access and manage Deepwiki content, pages, and user information",
+        "keywords": ["deepwiki", "wiki", "content", "page", "user", "edit", "create", "delete", "search"],
+    },
+    
 ]
 async def main():
     api_key = os.getenv("DEDALUS_API_KEY")
