@@ -38,6 +38,12 @@ htmlcov/
 .mypy_cache/
 .tox/
 
+# Node / Next.js
+node_modules/
+.next/
+*.tsbuildinfo
+npm-debug.log*
+
 # Docker
 .docker/
 *.log
