@@ -20,9 +20,6 @@ from jiri.core.logging import RequestLogger, logger, setup_logging
 from jiri.core.redis_client import close_redis, init_redis
 from jiri.routers import health, session, voice_turn
 
-from session.store import session_store
->>>>>>> refs/remotes/origin/main
-
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
@@ -117,11 +114,8 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(health.router)
-<<<<<<< HEAD
     app.include_router(voice_turn.router)
-=======
-    app.include_router(turn.router)
->>>>>>> refs/remotes/origin/main
+    app.include_router(session.router)
 
     return app
 
