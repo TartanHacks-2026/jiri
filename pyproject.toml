@@ -11,32 +11,24 @@ dependencies = [
     # Web Framework
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
-
     # Database
     "sqlalchemy[asyncio]>=2.0.25",
     "asyncpg>=0.29.0",
     "alembic>=1.13.1",
-
     # Redis
     "redis>=5.2.0",
-
     # Configuration
     "pydantic>=2.10.0",
     "pydantic-settings>=2.1.0",
     "python-dotenv>=1.0.0",
-
     # Logging
     "loguru>=0.7.2",
-
     # ChromaDB Client
     "chromadb>=0.4.22",
-
     # HTTP Client (for MCP discovery)
     "httpx>=0.28.0",
-
     # LLM
     "openai>=1.60.0",
-
     # Dedalus Labs SDK and MCP
     "dedalus-labs>=0.1.0",
     "dedalus-mcp>=0.1.0",
