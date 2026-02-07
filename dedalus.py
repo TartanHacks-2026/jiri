@@ -9,10 +9,10 @@ async def main():
     runner = DedalusRunner(client)
     
     result = await runner.run(
-        input="I want to know the stats of MSFT stock",
-        model="openai/gpt-5-nano",
-        # Any public MCP URL!
-        mcp_servers=["tsion/yahoo-finance-mcp"]
+        input="Book an uber",
+        model="openai/gpt-5-chat-latest",
+        # External MCP URL!
+        mcp_servers=["http://localhost:3333/mcp"],
     )
     
     print(result.final_output)
