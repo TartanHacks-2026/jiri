@@ -14,13 +14,17 @@ interface TechLinesProps {
     orbCenter: { x: string; y: string };
 }
 
-// Module positions matching floating-module.tsx
+// Module positions matching CSS Grid cells (5x5 grid)
+// Grid cells translate to approximate percentages:
+// col-2/row-2 ≈ 33%, 33%  |  col-4/row-2 ≈ 67%, 33%
+// col-2/row-4 ≈ 33%, 67%  |  col-4/row-4 ≈ 67%, 67%
+// col-3/row-5 ≈ 50%, 83%
 const MODULE_POSITIONS: Record<string, { x: number; y: number }> = {
-    trace: { x: 80, y: 30 },
-    tools: { x: 20, y: 30 },
-    artifacts: { x: 30, y: 70 },
-    plan: { x: 70, y: 70 },
-    stateRail: { x: 50, y: 75 },
+    tools: { x: 33, y: 33 },      // Grid cell (2,2) - Top-left
+    trace: { x: 67, y: 33 },      // Grid cell (4,2) - Top-right
+    voice: { x: 33, y: 67 },      // Grid cell (2,4) - Bottom-left
+    plan: { x: 67, y: 67 },       // Grid cell (4,4) - Bottom-right
+    stateRail: { x: 50, y: 83 },  // Grid cell (3,5) - Bottom-center
 };
 
 /**

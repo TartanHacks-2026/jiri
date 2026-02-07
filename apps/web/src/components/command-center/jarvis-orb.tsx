@@ -23,9 +23,9 @@ export function JarvisOrb({
 
     return (
         <div className={cn("relative", className)}>
-            {/* Outer Ring (400px) */}
-            <motion.div
-                className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent/20"
+            {/* Outer Ring - Smaller to prevent module overlap */}
+            < motion.div
+                className="absolute left-1/2 top-1/2 h-[220px] w-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent/20 md:h-[280px] md:w-[280px]"
                 animate={{
                     rotate: 360,
                 }}
@@ -36,10 +36,10 @@ export function JarvisOrb({
                 }}
             />
 
-            {/* Main Sphere (260px) */}
+            {/* Main Sphere - Smaller to prevent overlap */}
             <motion.div
                 className={cn(
-                    "absolute left-1/2 top-1/2 h-[260px] w-[260px] -translate-x-1/2 -translate-y-1/2 rounded-full",
+                    "absolute left-1/2 top-1/2 h-[160px] w-[160px] -translate-x-1/2 -translate-y-1/2 rounded-full md:h-[200px] md:w-[200px]",
                     "bg-gradient-radial from-cyber-black via-accent/30 to-transparent",
                     "border-2 border-accent/40 backdrop-blur-xl",
                     isListening && "shadow-[0_0_60px_rgba(0,217,255,1)]"
@@ -65,9 +65,9 @@ export function JarvisOrb({
                     ease: isListening ? "easeInOut" : [0.4, 0, 0.2, 1],
                 }}
             >
-                {/* Inner Pulse (220px) */}
+                {/* Inner Pulse - Smaller to match new orb size */}
                 <motion.div
-                    className="absolute left-1/2 top-1/2 h-[220px] w-[220px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10"
+                    className="absolute left-1/2 top-1/2 h-[120px] w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 md:h-[160px] md:w-[160px]"
                     animate={{
                         scale: [0.95, 1.05, 0.95],
                     }}
@@ -79,23 +79,23 @@ export function JarvisOrb({
                 />
 
                 {/* Transcript Display */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center md:p-8">
                     {recentLines.length === 0 && !partialTranscript ? (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="text-sm uppercase tracking-[0.2em] text-muted-foreground"
+                            className="text-xs uppercase tracking-[0.2em] text-muted-foreground md:text-sm"
                         >
                             {isListening ? "Listening..." : "Ready"}
                         </motion.div>
                     ) : (
-                        <div className="space-y-2">
+                        <div className="space-y-1 md:space-y-2">
                             {recentLines.map((line, i) => (
                                 <motion.div
                                     key={i}
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1 - i * 0.3, y: 0 }}
-                                    className="text-sm text-foreground/80"
+                                    className="text-xs text-foreground/80 md:text-sm"
                                 >
                                     <span className="font-mono text-xs text-accent">
                                         {line.role === "user" ? "YOU" : "JIRI"}:
@@ -108,9 +108,9 @@ export function JarvisOrb({
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="text-sm text-accent"
+                                    className="text-xs text-accent md:text-sm"
                                 >
-                                    <span className="font-mono text-xs">PARTIAL:</span> {partialTranscript}
+                                    <span className="font-mono text-[10px] md:text-xs">PARTIAL:</span> {partialTranscript}
                                 </motion.div>
                             )}
                         </div>
@@ -143,11 +143,13 @@ export function JarvisOrb({
             </motion.div>
 
             {/* Audio Visualizer Placeholder (for future) */}
-            {isListening && (
-                <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    {/* Future: Add radial frequency bars here */}
-                </div>
-            )}
-        </div>
+            {
+                isListening && (
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                        {/* Future: Add radial frequency bars here */}
+                    </div>
+                )
+            }
+        </div >
     );
 }

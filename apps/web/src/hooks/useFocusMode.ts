@@ -2,24 +2,29 @@
 
 import { useEffect, useState } from "react";
 
-interface UseFocusModeOptions {
-    /**
-     * Time in milliseconds before focus mode activates (peripherals blur)
-     * @default 2000
-     */
-    idleTimeout?: number;
-}
-
 /**
- * Hook to detect user activity and toggle focus mode
- * When idle for specified duration, returns false (blur peripherals)
- * When active, returns true (show peripherals clearly)
+ * Detects user inactivity for focus mode
+ * Returns true when user is active, false after idleTimeout ms
  */
-export function useFocusMode(options: UseFocusModeOptions = {}) {
-    const { idleTimeout = 2000 } = options;
+export function useFocusMode({ idleTimeout = 2000 }: { idleTimeout?: number }) {
     const [isFocused, setIsFocused] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
+        // Check if mobile on mount and window resize
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+
+        // Mobile is always focused (no blur)
+        if (isMobile) {
+            setIsFocused(true);
+            return () => window.removeEventListener("resize", checkMobile);
+        }
+
         let timeout: NodeJS.Timeout;
 
         const handleActivity = () => {
@@ -28,25 +33,23 @@ export function useFocusMode(options: UseFocusModeOptions = {}) {
             timeout = setTimeout(() => setIsFocused(false), idleTimeout);
         };
 
-        // Initialize with first timeout
-        timeout = setTimeout(() => setIsFocused(false), idleTimeout);
+        // Trigger initial timeout
+        handleActivity();
 
-        // Listen for user activity
         window.addEventListener("mousemove", handleActivity);
-        window.addEventListener("mousedown", handleActivity);
         window.addEventListener("keydown", handleActivity);
-        window.addEventListener("touchstart", handleActivity);
+        window.addEventListener("click", handleActivity);
         window.addEventListener("scroll", handleActivity);
 
         return () => {
             clearTimeout(timeout);
             window.removeEventListener("mousemove", handleActivity);
-            window.removeEventListener("mousedown", handleActivity);
             window.removeEventListener("keydown", handleActivity);
-            window.removeEventListener("touchstart", handleActivity);
+            window.removeEventListener("click", handleActivity);
             window.removeEventListener("scroll", handleActivity);
+            window.removeEventListener("resize", checkMobile);
         };
-    }, [idleTimeout]);
+    }, [idleTimeout, isMobile]);
 
     return isFocused;
 }

@@ -38,14 +38,6 @@ htmlcov/
 .mypy_cache/
 .tox/
 
-# Node / Next.js
-node_modules/
-.next/
-*.tsbuildinfo
-npm-debug.log*
-apps/web/.env.local
-apps/agent-runtime/.agentuity/
-
 # Docker
 .docker/
 *.log
@@ -60,4 +52,7 @@ docker-compose.*.yml
 !docker-compose.yml
 
 #Folder
-Jiri/
+Jiri_xcode/
+apps/web/node_modules/
+apps/web/.next/
+apps/web/tsconfig.tsbuildinfo
