@@ -1,4 +1,4 @@
-# PLAN: Mosaic Aegis - Backend Infrastructure
+# PLAN: Jiri - Backend Infrastructure
 
 > **Goal:** Establish a robust, scalable backend foundation that supports high-concurrency voice streams and persistent state.
 > **Role:** "The Backbone" - Providing Database, Auth, and Deployment infrastructure for other roles.
@@ -22,7 +22,7 @@
 ## 3. File Structure
 
 ```
-mosaic-aegis/
+jiri/
 ├── docker-compose.yml          # Services config
 ├── .env                        # Secrets (Gitignored)
 ├── infra/

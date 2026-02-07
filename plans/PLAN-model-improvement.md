@@ -1,4 +1,4 @@
-# PLAN: Mosaic Aegis - Model Improvement
+# PLAN: Jiri - Model Improvement
 
 > **Goal:** Create the "Discovery Brain" - enabling the agent to autonomously find, verify, and use new tools when defaults fail.
 > **Role:** "The Brain Upgrade" - Focusing on Aweseome-MCP integration, RAG personalization, and self-healing logic.
@@ -21,7 +21,7 @@
 ## 3. File Structure
 
 ```
-mosaic-aegis/
+jiri/
 ├── src/
 │   ├── discovery/
 │   │   ├── registry_client.py  # Awesome-MCP query logic

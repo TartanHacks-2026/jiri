@@ -1,4 +1,4 @@
-# PLAN: Mosaic Aegis MVP (Voice Pipe)
+# PLAN: Jiri MVP (Voice Pipe)
 
 > **Goal:** Create a high-fidelity, low-latency "Voice-In → AI-Response → Voice-Out" loop using Azure Voice Live and Python FastAPI.
 > **Philosophy:** "Speed is the Feature." Prove the <200ms latency hypothesis before adding complexity.
@@ -29,7 +29,7 @@
 ## 3. File Structure
 
 ```
-mosaic-aegis/
+jiri/
 ├── .env.example                # Azure keys, config
 ├── pyproject.toml              # Dependencies (managed by uv)
 ├── README.md                   # Setup instructions

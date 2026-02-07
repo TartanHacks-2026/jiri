@@ -1,4 +1,4 @@
-# PLAN: Mosaic Aegis - Orchestration Pipeline
+# PLAN: Jiri - Orchestration Pipeline
 
 > **Goal:** The central nervous system. Connects the Voice Bridge (Azure) to the Model Brain (LLM) and Tool Hands (Dedalus).
 > **Role:** "The Orchestrator" - Managing session flow, routing intents, and ensuring security.
@@ -21,7 +21,7 @@
 ## 3. File Structure
 
 ```
-mosaic-aegis/
+jiri/
 ├── src/
 │   ├── orchestrator/
 │   │   ├── pipeline.py         # Main event loop

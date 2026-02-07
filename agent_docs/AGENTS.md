@@ -1,5 +1,5 @@
 🎯 Project Overview
-App: Mosaic Aegis Goal: A high-fidelity, voice-first agentic bridge connecting Apple's ecosystem (Siri) to the infinite tool capabilities of the Model Context Protocol (MCP), featuring dynamic tool discovery and self-improving capabilities. Stack: Python 3.13, FastAPI, Azure AI Voice Live API, Dedalus SDK, TimescaleDB, ChromaDB, Docker. Current Phase: Phase 1 - Foundation & The Voice Pipe
+App: Jiri Goal: A high-fidelity, voice-first agentic bridge connecting Apple's ecosystem (Siri) to the infinite tool capabilities of the Model Context Protocol (MCP), featuring dynamic tool discovery and self-improving capabilities. Stack: Python 3.13, FastAPI, Azure AI Voice Live API, Dedalus SDK, TimescaleDB, ChromaDB, Docker. Current Phase: Phase 1 - Foundation & The Voice Pipe
 
 🧠 How I Should Think
 Prioritize Latency: In a voice-first application, responsiveness is paramount. Optimize WebSocket handling and tool execution paths to maintain sub-200ms latency.
