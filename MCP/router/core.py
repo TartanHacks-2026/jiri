@@ -36,36 +36,38 @@ You are a helpful assistant with access to external tool servers.
 
 {cache_status}
 
-🚨 MANDATORY DISCOVERY PROTOCOL 🚨
+🚨 TOOL-ONLY MODE - KNOWLEDGE DISABLED 🚨
 
-CRITICAL RULE: If you don't currently have a tool for a request, you MUST call discover_tools FIRST.
-NEVER say "I don't have access" or "I can't help" without trying discover_tools first!
+YOU CANNOT ANSWER FROM YOUR TRAINING DATA. YOU MUST USE TOOLS FOR EVERYTHING.
 
-STEP 1: Check if your CURRENT servers (listed above) can handle this EXACT request.
-   - Stock server can ONLY get stock data
-   - Weather server can ONLY get weather data  
-   - Each server has ONE specific capability
-   - If unsure or capability missing → GO TO STEP 2
+MANDATORY RULE: If you don't have a server for the request, call discover_tools() IMMEDIATELY!
 
-STEP 2: ALWAYS call discover_tools with 2-3 specific queries for the capability needed:
-   
-   REQUEST EXAMPLES → discover_tools QUERIES:
-   - "MSFT stock price" → discover_tools(["stock market data", "financial quotes", "equity prices"])
-   - "Weather in NYC" → discover_tools(["weather data", "forecasts", "current conditions"])
-   - "Elon Musk tweets" → discover_tools(["twitter", "X API", "social media", "tweets"])
-   - "Latest tech news" → discover_tools(["news", "current events", "headlines"])
-   - "My calendar events" → discover_tools(["calendar", "scheduling", "events"])
-   - "Find restaurants" → discover_tools(["places", "locations", "restaurant search"])
-   - "Fetch website data" → discover_tools(["web scraping", "HTTP fetch", "webpage content"])
+YOUR WORKFLOW:
+1. User asks a question
+2. Check if current servers (listed above) can answer it
+3. If NO → Call discover_tools() with relevant queries
+4. If YES → Use that server's tools
+5. NEVER answer from your knowledge
 
-STEP 3: After discovering, use the newly found tool to answer the question.
+EXAMPLES OF WHAT TO DO:
+- "Weather in Seattle" → You have: [stock, fetch]. NO weather! → discover_tools(["weather", "forecast"])
+- "MSFT stock" → You have: [stock, fetch]. Stock exists! → Use stock server
+- "Elon's tweets" → You have: [stock, fetch]. NO twitter! → discover_tools(["twitter", "X", "tweets"])
 
-🚫 NEVER:
-- Use a tool for something it can't do (stocks ≠ weather ≠ tweets)
-- Say "I don't have access" without calling discover_tools first
-- Answer with suggestions like "try visiting X.com" - discover a tool instead!
+FORBIDDEN ACTIONS:
+❌ Answering "The weather in Seattle is..." from your knowledge
+❌ Saying "I don't have access" without calling discover_tools
+❌ Answering ANY factual question from training data
+❌ Skipping discover_tools because you "know" the answer
 
-✅ ONLY answer from your knowledge for: basic math, general facts, reasoning (no real-time data).\
+REQUIRED ACTIONS:
+✅ If user asks about weather → discover_tools(["weather", "forecast", "conditions"])
+✅ If user asks about stocks → discover_tools(["stock", "financial", "market"])  
+✅ If user asks about tweets → discover_tools(["twitter", "X", "social"])
+✅ If user asks about news → discover_tools(["news", "headlines", "events"])
+✅ ALWAYS use tools, NEVER use your knowledge base
+
+YOU ARE NOT AN ASSISTANT. YOU ARE A TOOL ROUTER. ACT ACCORDINGLY.\
 """
 
 
@@ -186,10 +188,20 @@ class SmartRouter:
 
         # --- discover_tools as instance method reference ---
         def discover_tools(queries: list[str]) -> str:
-            """Search for tool servers that provide the capabilities described in the queries.
-            Each query should be a short natural-language description of a capability you need.
-            Call this with multiple queries if the task requires different capabilities.
-            Example: discover_tools(["stock market data", "text translation"])"""
+            """MANDATORY: Call this IMMEDIATELY if you don't have a server for the user's request!
+            
+            Example: User asks "weather in Seattle" but you only have [stock, fetch] servers?
+            → Call discover_tools(["weather", "forecast"]) RIGHT NOW!
+            
+            This searches for MCP servers that provide the capabilities in your queries.
+            Use 2-3 related search terms per capability.
+            
+            Examples:
+            - discover_tools(["weather", "forecast", "conditions"])
+            - discover_tools(["stock market", "financial data"])
+            - discover_tools(["twitter", "X", "social media"])
+            
+            DO NOT skip calling this! If you need weather and don't have weather, CALL THIS!"""
             return self._discover_tools_impl(queries)
         
         # Set the function name for Dedalus serialization
@@ -204,6 +216,59 @@ class SmartRouter:
         
         if cached_urls and not active_urls:
             self._log(f"  [All {len(cached_urls)} cached servers are unhealthy - starting fresh]")
+        
+        # WORKAROUND: Auto-discover if no servers OR query needs different capability
+        query_lower = user_input.lower()
+        needs_discovery = False
+        discovery_queries = []
+        
+        # Check what the query is about
+        is_url = 'http://' in query_lower or 'https://' in query_lower or '.com' in query_lower or '.org' in query_lower
+        is_weather = any(word in query_lower for word in ['weather', 'temperature', 'forecast', 'rain', 'snow', 'climate'])
+        is_stock = any(word in query_lower for word in ['stock', 'share', 'ticker', 'market', 'equity', 'msft', 'aapl', 'nasdaq'])
+        is_social = any(word in query_lower for word in ['tweet', 'twitter', 'x.com', 'elon', 'musk', 'social'])
+        is_news = any(word in query_lower for word in ['news', 'headlines', 'breaking'])
+        
+        # Check if we have the right server
+        if is_url and not any('fetch' in url.lower() or 'scrape' in url.lower() or 'http' in url.lower() for url in active_urls):
+            needs_discovery = True
+            discovery_queries = ["web fetch", "HTTP", "scraping"]
+            self._log(f"  [Query contains URL, but no web fetch server - auto-discovering]")
+        elif is_weather and not any('weather' in url.lower() or 'meteo' in url.lower() for url in active_urls):
+            needs_discovery = True
+            discovery_queries = ["weather", "forecast", "conditions"]
+            self._log(f"  [Query needs weather, but no weather server - auto-discovering]")
+        elif is_stock and not any('finance' in url.lower() or 'stock' in url.lower() or 'yahoo' in url.lower() for url in active_urls):
+            needs_discovery = True
+            discovery_queries = ["stock", "financial", "market data"]
+            self._log(f"  [Query needs stocks, but no stock server - auto-discovering]")
+        elif is_social and not any('twitter' in url.lower() or 'x-api' in url.lower() for url in active_urls):
+            needs_discovery = True
+            discovery_queries = ["twitter", "X", "social media"]
+            self._log(f"  [Query needs social media, but no social server - auto-discovering]")
+        elif is_news and not any('news' in url.lower() for url in active_urls):
+            needs_discovery = True
+            discovery_queries = ["news", "headlines", "current events"]
+            self._log(f"  [Query needs news, but no news server - auto-discovering]")
+        elif not active_urls:
+            # Fallback: No servers at all
+            needs_discovery = True
+            self._log(f"  [No servers available - auto-discovering based on query]")
+            if is_url:
+                discovery_queries = ["web fetch", "HTTP", "scraping"]
+            elif is_weather:
+                discovery_queries = ["weather", "forecast", "conditions"]
+            elif is_stock:
+                discovery_queries = ["stock", "financial", "market data"]
+            elif is_social:
+                discovery_queries = ["twitter", "X", "social media"]
+        
+        # Execute auto-discovery if needed
+        if needs_discovery and discovery_queries:
+            auto_result = self._discover_tools_impl(discovery_queries)
+            self._log(f"  [Auto-discovered tools for: {', '.join(discovery_queries)}]")
+            # Refresh active URLs after auto-discovery
+            active_urls = self._health.filter_healthy(self._cache.get_urls())
         
         # The agent can see all servers in instructions and will intelligently choose the right one
         instructions = self._build_instructions(active_urls)
@@ -232,13 +297,21 @@ class SmartRouter:
                 self._log(f"  [⚠️  discover_tools was NOT called - agent used existing servers]")
                 
         except Exception as e:
-            # Even on error, try to evict problematic servers
+            # Only evict newly auto-discovered servers (they're the likely culprits)
+            # Keep previously working servers in cache
             self._log(f"  [❌ Execution error: {e}]")
-            if active_urls:
-                self._log(f"  [Marking all active servers as unhealthy due to error]")
-                for url in active_urls:
+            if self._newly_discovered:
+                self._log(f"  [Marking {len(self._newly_discovered)} newly discovered servers as unhealthy]")
+                for url in self._newly_discovered:
                     self._health.mark_unhealthy(url)
                     self._cache.evict(url)
+            else:
+                # No new discoveries - mark all as potentially unhealthy
+                if active_urls:
+                    self._log(f"  [Marking all {len(active_urls)} active servers as unhealthy due to error]")
+                    for url in active_urls:
+                        self._health.mark_unhealthy(url)
+                        self._cache.evict(url)
             # Rollback the failed user query to prevent contamination
             self._log(f"  [Rolling back failed user query from history]")
             self._history.rollback_last_user()
@@ -331,10 +404,20 @@ class SmartRouter:
         self._newly_discovered: List[str] = []
 
         def discover_tools(queries: list[str]) -> str:
-            """Search for tool servers that provide the capabilities described in the queries.
-            Each query should be a short natural-language description of a capability you need.
-            Call this with multiple queries if the task requires different capabilities.
-            Example: discover_tools(["stock market data", "text translation"])"""
+            """MANDATORY: Call this IMMEDIATELY if you don't have a server for the user's request!
+            
+            Example: User asks "weather in Seattle" but you only have [stock, fetch] servers?
+            → Call discover_tools(["weather", "forecast"]) RIGHT NOW!
+            
+            This searches for MCP servers that provide the capabilities in your queries.
+            Use 2-3 related search terms per capability.
+            
+            Examples:
+            - discover_tools(["weather", "forecast", "conditions"])
+            - discover_tools(["stock market", "financial data"])
+            - discover_tools(["twitter", "X", "social media"])
+            
+            DO NOT skip calling this! If you need weather and don't have weather, CALL THIS!"""
             return self._discover_tools_impl(queries)
         
         discover_tools.__name__ = "discover_tools"

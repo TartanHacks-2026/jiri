@@ -67,7 +67,7 @@ MCP_REGISTRY = [
         "keywords": ["weather", "forecast", "hourly", "historical", "air quality", "UV exposure"],
     },
     {
-        "url": "http://localhost:3334/mcp",
+        "url": "sintem/gmail-mcp",
         "name": "Gmail MCP",
         "category": "Email",
         "description": "Access and manage Gmail messages, threads, labels, and user information",
@@ -75,10 +75,10 @@ MCP_REGISTRY = [
     },
     {
         "url": "https://mcp.deepwiki.com/mcp",
-        "name": "Deepwiki MCP",
+        "name": "Github MCP",
         "category": "Wiki",
-        "description": "Access and manage Deepwiki content, pages, and user information",
-        "keywords": ["deepwiki", "wiki", "content", "page", "user", "edit", "create", "delete", "search"],
+        "description": "Access and manage github content, pages, and user information",
+        "keywords": ["github","deepwiki", "wiki", "content", "page", "user", "edit", "create", "delete", "search"],
     },
     
 ]

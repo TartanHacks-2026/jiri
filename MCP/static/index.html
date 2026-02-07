@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jiri - MCP Router</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <style>
+        /* Markdown styles */
+        .markdown-content {
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .markdown-content h1 { 
+            font-size: 1.5em; 
+            font-weight: 700; 
+            margin: 0.8em 0 0.4em 0;
+            color: #1f2937;
+        }
+        .markdown-content h2 { 
+            font-size: 1.3em; 
+            font-weight: 700; 
+            margin: 0.7em 0 0.4em 0;
+            color: #374151;
+        }
+        .markdown-content h3 { 
+            font-size: 1.15em; 
+            font-weight: 600; 
+            margin: 0.6em 0 0.3em 0;
+            color: #4b5563;
+        }
+        .markdown-content strong, .markdown-content b { 
+            font-weight: 700;
+            color: #111827;
+        }
+        .markdown-content em, .markdown-content i { 
+            font-style: italic; 
+        }
+        .markdown-content ul { 
+            list-style: disc; 
+            margin-left: 1.5em; 
+            margin: 0.5em 0; 
+        }
+        .markdown-content ol { 
+            list-style: decimal; 
+            margin-left: 1.5em; 
+            margin: 0.5em 0; 
+        }
+        .markdown-content li { 
+            margin: 0.4em 0;
+            line-height: 1.6;
+        }
+        .markdown-content p { 
+            margin: 0.6em 0;
+        }
+        .markdown-content p:first-child {
+            margin-top: 0;
+        }
+        .markdown-content p:last-child {
+            margin-bottom: 0;
+        }
+        .markdown-content code { 
+            background: #f3f4f6; 
+            padding: 0.2em 0.5em; 
+            border-radius: 4px; 
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-size: 0.875em;
+            color: #be185d;
+        }
+        .markdown-content pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1.2em 0;
+            font-size: 0.9em;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .markdown-content th {
+            background: #3b82f6;
+            color: white;
+            font-weight: 600;
+            padding: 0.75em 1em;
+            text-align: left;
+            border: none;
+        }
+        .markdown-content td {
+            padding: 0.75em 1em;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .markdown-content tr:last-child td {
+            border-bottom: none;
+        }
+        .markdown-content tbody tr:nth-child(odd) {
+            background: #f9fafb;
+        }
+        .markdown-content tbody tr:nth-child(even) {
+            background: white;
+        }
+        .markdown-content tbody tr:hover {
+            background: #f3f4f6;
+        }
+        .markdown-content blockquote {
+            border-left: 4px solid #3b82f6;
+            padding-left: 1em;
+            margin: 1em 0;
+            color: #6b7280;
+            font-style: italic;
+        }
+        .markdown-content hr {
+            border: none;
+            border-top: 2px solid #e5e7eb;
+            margin: 1.5em 0;
+        }
+    </style>
+</head>
+<body class="h-full bg-gradient-to-br from-gray-50 to-gray-100">
+    <div class="h-full flex flex-col">
+        <!-- Header -->
+        <header class="bg-white shadow-md border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                            <span class="text-3xl">🤖</span>
+                            <span>Jiri</span>
+                        </h1>
+                        <p class="text-sm text-gray-500 mt-1">Intelligent MCP Router with Dynamic Tool Discovery</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="status" class="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 shadow-sm">
+                            Connecting...
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 w-full flex gap-6 overflow-hidden">
+            <!-- Chat Area -->
+            <div class="flex-1 flex flex-col bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <!-- Messages -->
+                <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+                    <div class="text-center text-gray-500 text-sm py-12">
+                        <div class="text-4xl mb-3">🤖</div>
+                        <div class="font-medium">Start a conversation</div>
+                        <div class="text-xs mt-1">Try: "How is MSFT stock doing?" or "What's the weather in Seattle?"</div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="border-t border-gray-200 p-4 bg-white">
+                    <form id="chatForm" class="flex gap-3">
+                        <input
+                            type="text"
+                            id="queryInput"
+                            placeholder="Ask me anything... (e.g., How is MSFT stock doing?)"
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                            autocomplete="off"
+                        />
+                        <button
+                            type="submit"
+                            class="px-8 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-all"
+                            id="sendBtn"
+                        >
+                            Send
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="w-80 flex flex-col gap-4">
+                <!-- Cached Servers -->
+                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-5">
+                    <h2 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <span class="text-xl">🗄️</span>
+                        <span>Cached Servers</span>
+                    </h2>
+                    <div id="cachedServers" class="space-y-2">
+                        <div class="text-sm text-gray-400 italic">No servers cached yet</div>
+                    </div>
+                </div>
+
+                <!-- Live Logs -->
+                <div class="flex-1 bg-white rounded-xl shadow-md border border-gray-200 p-5 flex flex-col overflow-hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
+                            <span class="text-xl">📋</span>
+                            <span>Live Logs</span>
+                        </h2>
+                        <button
+                            onclick="clearLogs()"
+                            class="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                        >
+                            Clear
+                        </button>
+                    </div>
+                    <div id="logs" class="flex-1 overflow-y-auto space-y-1 font-mono text-xs bg-gray-50 rounded-lg p-3">
+                        <div class="text-gray-400 italic">Waiting for activity...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configure marked.js
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        let ws;
+        let isConnected = false;
+
+        // Connect to WebSocket
+        function connect() {
+            ws = new WebSocket(`ws://${window.location.host}/ws`);
+            
+            ws.onopen = () => {
+                isConnected = true;
+                updateStatus('Connected', 'green');
+                addLog('✅ Connected to server', 'success');
+            };
+            
+            ws.onclose = () => {
+                isConnected = false;
+                updateStatus('Disconnected', 'red');
+                addLog('❌ Disconnected from server', 'error');
+                setTimeout(connect, 3000);
+            };
+            
+            ws.onerror = (error) => {
+                addLog('❌ WebSocket error', 'error');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+        }
+
+        function handleMessage(data) {
+            switch(data.type) {
+                case 'log':
+                    addLog(data.message, data.log_type);
+                    break;
+                case 'response':
+                    addMessage(data.message, 'assistant');
+                    break;
+                case 'cache_update':
+                    updateCachedServers(data.servers);
+                    break;
+                case 'error':
+                    addMessage(`Error: ${data.message}`, 'error');
+                    break;
+            }
+        }
+
+        function updateStatus(text, color) {
+            const status = document.getElementById('status');
+            const colors = {
+                'green': 'bg-green-100 text-green-800 border border-green-300',
+                'red': 'bg-red-100 text-red-800 border border-red-300',
+                'gray': 'bg-gray-100 text-gray-600 border border-gray-300'
+            };
+            status.className = `px-4 py-2 text-sm font-medium rounded-full shadow-sm ${colors[color] || colors.gray}`;
+            
+            const icons = {
+                'green': '✅',
+                'red': '❌',
+                'gray': '⏳'
+            };
+            status.textContent = `${icons[color] || ''} ${text}`;
+        }
+
+        function addMessage(content, role) {
+            const messages = document.getElementById('messages');
+            
+            // Remove placeholder
+            if (messages.children.length === 1 && messages.children[0].classList.contains('text-center')) {
+                messages.innerHTML = '';
+            }
+            
+            const div = document.createElement('div');
+            div.className = role === 'user' 
+                ? 'flex justify-end' 
+                : role === 'error' 
+                    ? 'flex justify-center'
+                    : 'flex justify-start';
+            
+            const colors = {
+                'user': 'bg-blue-600 text-white shadow-md',
+                'assistant': 'bg-white text-gray-900 border border-gray-200 shadow-md',
+                'error': 'bg-red-50 text-red-800 border border-red-200'
+            };
+            
+            let messageContent;
+            if (role === 'assistant') {
+                // Parse markdown for assistant messages
+                const parsed = marked.parse(content);
+                messageContent = `<div class="markdown-content">${parsed}</div>`;
+            } else if (role === 'user') {
+                messageContent = `<div class="text-sm font-medium">${escapeHtml(content)}</div>`;
+            } else {
+                // Error messages
+                messageContent = `<div class="text-sm">${escapeHtml(content)}</div>`;
+            }
+            
+            div.innerHTML = `
+                <div class="${colors[role]} rounded-xl px-5 py-3 max-w-[85%]">
+                    ${messageContent}
+                </div>
+            `;
+            
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            
+            // Remove placeholder
+            if (logs.children.length === 1 && logs.children[0].classList.contains('text-gray-400')) {
+                logs.innerHTML = '';
+            }
+            
+            const colors = {
+                'discovery': 'text-purple-700 font-medium',
+                'success': 'text-green-700 font-medium',
+                'error': 'text-red-700 font-semibold',
+                'warning': 'text-yellow-700 font-medium',
+                'user': 'text-blue-700 font-semibold',
+                'info': 'text-gray-700'
+            };
+            
+            const div = document.createElement('div');
+            div.className = `${colors[type] || colors.info} py-1 leading-relaxed`;
+            div.textContent = message;
+            
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+            
+            // Keep only last 100 logs
+            while (logs.children.length > 100) {
+                logs.removeChild(logs.firstChild);
+            }
+        }
+
+        function updateCachedServers(servers) {
+            const container = document.getElementById('cachedServers');
+            
+            if (!servers || servers.length === 0) {
+                container.innerHTML = '<div class="text-sm text-gray-400 italic">No servers cached yet</div>';
+                return;
+            }
+            
+            container.innerHTML = servers.map((server, idx) => {
+                // Extract a friendly name from the URL
+                const parts = server.split('/');
+                const name = parts[parts.length - 1] || server;
+                
+                return `
+                <div class="group relative">
+                    <div class="text-xs px-3 py-2.5 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 rounded-lg border border-blue-200 font-medium hover:shadow-md transition-all">
+                        <div class="flex items-center gap-2">
+                            <span class="text-blue-600">🔗</span>
+                            <span class="truncate">${escapeHtml(name)}</span>
+                        </div>
+                    </div>
+                    <div class="absolute left-0 top-full mt-1 w-full bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                        ${escapeHtml(server)}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function clearLogs() {
+            const logs = document.getElementById('logs');
+            logs.innerHTML = '<div class="text-gray-400 italic">Logs cleared</div>';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Form submission
+        document.getElementById('chatForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const input = document.getElementById('queryInput');
+            const query = input.value.trim();
+            
+            if (!query || !isConnected) return;
+            
+            // Add user message
+            addMessage(query, 'user');
+            
+            // Send to server
+            ws.send(JSON.stringify({
+                type: 'query',
+                message: query
+            }));
+            
+            // Clear input
+            input.value = '';
+            
+            // Disable send button temporarily
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = true;
+            setTimeout(() => btn.disabled = false, 1000);
+        });
+
+        // Connect on load
+        connect();
+    </script>
+</body>
+</html>

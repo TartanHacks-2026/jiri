@@ -12,7 +12,7 @@ class RouterConfig:
     """All tunables for the SmartRouter."""
 
     # --- Models ---
-    execution_model: str = "openai/gpt-5-chat-latest"
+    execution_model: str = "anthropic/claude-haiku-4-5"  # Fast and good at tool calling
 
     # --- Semantic search ---
     similarity_threshold: float = 0.35  # Higher = more strict
