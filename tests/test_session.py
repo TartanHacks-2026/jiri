@@ -1,8 +1,9 @@
 """Tests for session store."""
 
 import pytest
-from src.session.store import SessionStore
+
 from src.session.models import SessionData
+from src.session.store import SessionStore
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 """Orchestrator package."""
 
-from .agent import agent, AgentOrchestrator
-from .fallback import check_end_conversation, get_fallback_response, format_speakable
+from .agent import AgentOrchestrator, agent
+from .fallback import check_end_conversation, format_speakable, get_fallback_response
 
 __all__ = [
     "agent",

@@ -18,7 +18,8 @@ from jiri.core.config import get_settings
 from jiri.core.database import close_db, init_db
 from jiri.core.logging import RequestLogger, logger, setup_logging
 from jiri.core.redis_client import close_redis, init_redis
-from jiri.routers import health
+from jiri.routers import health, turn
+from session.store import session_store
 
 
 @asynccontextmanager
@@ -29,6 +30,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     - Database connection
     - Redis connection
     - Logging
+    - Session Store (Legacy/Remote)
     """
     # Startup
     setup_logging()
@@ -40,12 +42,16 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     await init_redis()
     logger.info("Redis initialized")
 
+    await session_store.connect()
+    logger.info("Session store initialized")
+
     logger.info("Jiri backend started successfully")
 
     yield
 
     # Shutdown
     logger.info("Shutting down Jiri backend...")
+    await session_store.close()
     await close_redis()
     await close_db()
     logger.info("Jiri backend stopped")
@@ -109,6 +115,7 @@ def create_app() -> FastAPI:
 
     # Include routers
     app.include_router(health.router)
+    app.include_router(turn.router)
 
     return app
 
