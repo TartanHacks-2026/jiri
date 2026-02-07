@@ -3,14 +3,14 @@ name = "jiri"
 version = "0.1.0"
 description = "Voice-first agentic bridge with MCP tool discovery"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = { text = "MIT" }
 authors = [{ name = "Jiri Team" }]
 
 dependencies = [
     # Web Framework
-    "fastapi>=0.109.0",
-    "uvicorn[standard]>=0.27.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
 
     # Database
     "sqlalchemy[asyncio]>=2.0.25",
@@ -18,10 +18,10 @@ dependencies = [
     "alembic>=1.13.1",
 
     # Redis
-    "redis>=5.0.1",
+    "redis>=5.2.0",
 
     # Configuration
-    "pydantic>=2.5.3",
+    "pydantic>=2.10.0",
     "pydantic-settings>=2.1.0",
     "python-dotenv>=1.0.0",
 
@@ -32,7 +32,7 @@ dependencies = [
     "chromadb>=0.4.22",
 
     # HTTP Client (for MCP discovery)
-    "httpx>=0.26.0",
+    "httpx>=0.28.0",
 
     # LLM
     "openai>=1.60.0",
@@ -40,13 +40,13 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.1.14",
+    "ruff>=0.8.0",
     "mypy>=1.8.0",
-    "pytest>=7.4.4",
-    "pytest-asyncio>=0.23.3",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
     "pytest-cov>=4.1.0",
     "black>=24.10.0",
-    "httpx>=0.26.0",          # For TestClient
+    "httpx>=0.28.0",          # For TestClient
 ]
 
 azure = ["azure-cognitiveservices-speech>=1.35.0"]
@@ -56,7 +56,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 100
 select = [
     "E",   # pycodestyle errors
@@ -74,11 +74,18 @@ ignore = [
     "B008", # function call in default argument (needed for FastAPI Depends)
 ]
 
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
 [tool.ruff.isort]
 known-first-party = ["jiri"]
 
+[tool.black]
+line-length = 100
+target-version = ["py313"]
+
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict = true
 warn_return_any = true
 warn_unused_ignores = true
