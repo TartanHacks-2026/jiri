@@ -1,18 +1,21 @@
-# client.py
-from dedalus_mcp.client import MCPClient
 import asyncio
+from dedalus_labs import AsyncDedalus, DedalusRunner
+from dotenv import load_dotenv
+
+load_dotenv()
 
 async def main():
-    client = await MCPClient.connect("http://127.0.0.1:8000/mcp")
+    client = AsyncDedalus()
+    runner = DedalusRunner(client)
     
-    # List available tools
-    tools = await client.list_tools()
-    print([t.name for t in tools.tools])  # ['add', 'multiply']
+    result = await runner.run(
+        input="I want to know the stats of MSFT stock",
+        model="openai/gpt-5-nano",
+        # Any public MCP URL!
+        mcp_servers=["tsion/yahoo-finance-mcp"]
+    )
     
-    # Call a tool
-    result = await client.call_tool("multiply", {"a": 2, "b": 3})
-    print(result.content[0].text)  # "5"
-    
-    await client.close()
+    print(result.final_output)
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
