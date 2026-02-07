@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { SessionPhase } from "@/store/command-center-store";
 
 interface StateRailProps {
@@ -24,13 +23,11 @@ export function StateRail({ phase, phaseMessage }: StateRailProps) {
   );
 
   return (
-    <Card className="border-accent/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
-          State Rail
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="space-y-3">
+      <h3 className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
+        State Rail
+      </h3>
+      <div className="space-y-3">
         <div className="grid grid-cols-4 gap-2">
           {STATES.map((state, index) => {
             const isPastOrCurrent = index <= activeIndex;
@@ -50,11 +47,10 @@ export function StateRail({ phase, phaseMessage }: StateRailProps) {
                 ) : null}
                 <div className="relative z-10 text-center">
                   <div
-                    className={`mx-auto h-2 w-2 rounded-full ${
-                      isPastOrCurrent
+                    className={`mx-auto h-2 w-2 rounded-full ${isPastOrCurrent
                         ? "bg-primary shadow-[0_0_14px_rgba(61,239,199,0.78)]"
                         : "bg-muted"
-                    }`}
+                      }`}
                   />
                   <div className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
                     {state.label}
@@ -66,7 +62,7 @@ export function StateRail({ phase, phaseMessage }: StateRailProps) {
         </div>
 
         <p className="font-mono text-xs text-muted-foreground">{phaseMessage}</p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

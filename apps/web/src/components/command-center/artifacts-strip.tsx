@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FileBadge2, Link as LinkIcon, ReceiptText, ScrollText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Artifact, Receipt } from "@/lib/event-contract";
 
 interface ArtifactsStripProps {
@@ -39,13 +38,11 @@ function receiptVariant(status: Receipt["status"]): "success" | "warning" | "dan
 
 export function ArtifactsStrip({ artifacts, receipts }: ArtifactsStripProps) {
   return (
-    <Card className="border-accent/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
-          Artifacts + Receipts
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid gap-3 lg:grid-cols-2">
+    <div className="space-y-3">
+      <h3 className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
+        Artifacts + Receipts
+      </h3>
+      <div className="grid gap-3 lg:grid-cols-2">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Artifacts</p>
           <AnimatePresence initial={false}>
@@ -129,7 +126,7 @@ export function ArtifactsStrip({ artifacts, receipts }: ArtifactsStripProps) {
             )}
           </AnimatePresence>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

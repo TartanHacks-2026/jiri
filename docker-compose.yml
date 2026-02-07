@@ -15,7 +15,7 @@ services:
       - timescale_data:/var/lib/postgresql/data
       - ./infra/timescale/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jiri}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jiri}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,11 +32,6 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
       - ANONYMIZED_TELEMETRY=FALSE
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     restart: unless-stopped
 
   # Redis - Session state and caching
@@ -49,7 +44,7 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -79,7 +74,7 @@ services:
       redis:
         condition: service_healthy
       chromadb:
-        condition: service_healthy
+        condition: service_started
     # profiles:
     #   - full  # Commented out to make it default for now
     restart: unless-stopped
@@ -90,6 +85,7 @@ volumes:
   timescale_data:
   chroma_data:
   redis_data:
+
 
 networks:
   jiri-network:

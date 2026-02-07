@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, LoaderCircle, Sparkles } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { formatTime } from "@/lib/utils";
 import type { TraceLine } from "@/store/command-center-store";
 
@@ -51,13 +51,11 @@ export function TracePanel({ trace }: TracePanelProps) {
   const items = trace.slice(-18).reverse();
 
   return (
-    <Card className="h-full border-accent/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
-          Tool Trace
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
+    <div className="space-y-3">
+      <h3 className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
+        Tool Trace
+      </h3>
+      <div className="space-y-2">
         <AnimatePresence initial={false}>
           {items.length === 0 ? (
             <motion.div
@@ -97,7 +95,7 @@ export function TracePanel({ trace }: TracePanelProps) {
             ))
           )}
         </AnimatePresence>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

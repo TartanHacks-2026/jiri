@@ -63,6 +63,9 @@ const config: Config = {
       animation: {
         shimmer: "shimmer 1.8s linear infinite",
       },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(circle, var(--tw-gradient-stops))",
+      },
     },
   },
   plugins: [],

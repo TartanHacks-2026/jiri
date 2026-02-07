@@ -1,6 +1,5 @@
 import { CheckCircle2, Circle, CircleDot, CircleX } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PlanStep } from "@/lib/event-contract";
 
 interface PlanCardProps {
@@ -24,13 +23,11 @@ function StepStatusIcon({ status }: { status: PlanStep["status"] }) {
 
 export function PlanCard({ goal, steps }: PlanCardProps) {
   return (
-    <Card className="border-accent/20">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
-          Agent Plan
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+    <div className="space-y-3">
+      <h3 className="text-sm uppercase tracking-[0.16em] text-muted-foreground">
+        Agent Plan
+      </h3>
+      <div className="space-y-3">
         <p className="text-sm text-foreground">{goal}</p>
 
         {steps.length === 0 ? (
@@ -50,7 +47,7 @@ export function PlanCard({ goal, steps }: PlanCardProps) {
             ))}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
