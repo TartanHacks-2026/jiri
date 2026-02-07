@@ -6,7 +6,7 @@ from typing import Optional
 
 from openai import AsyncOpenAI
 
-from src.session import session_store
+from jiri.session import session_store
 
 from .fallback import format_speakable, get_fallback_response
 

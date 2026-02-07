@@ -19,6 +19,7 @@ from jiri.core.database import close_db, init_db
 from jiri.core.logging import RequestLogger, logger, setup_logging
 from jiri.core.redis_client import close_redis, init_redis
 from jiri.routers import health, session, voice_turn
+from jiri.session import session_store
 
 
 @asynccontextmanager
