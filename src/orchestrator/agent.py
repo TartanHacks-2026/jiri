@@ -7,6 +7,7 @@ from typing import Optional
 from openai import AsyncOpenAI
 
 from src.session import session_store
+
 from .fallback import format_speakable, get_fallback_response
 
 
@@ -36,9 +37,7 @@ When a tool is needed, explain what you'll do briefly."""
             self._client = AsyncOpenAI(api_key=self.api_key)
         return self._client
 
-    async def process_turn(
-        self, session_id: str, user_text: str
-    ) -> tuple[str, list[str], str]:
+    async def process_turn(self, session_id: str, user_text: str) -> tuple[str, list[str], str]:
         """
         Process a conversation turn.
 
@@ -63,7 +62,6 @@ When a tool is needed, explain what you'll do briefly."""
                 # Store assistant response
                 await session_store.append_message(session_id, "assistant", reply)
 
-                latency = int((time.time() - start_time) * 1000)
                 return reply, tool_trace, "agent"
 
             except Exception as e:
@@ -75,9 +73,7 @@ When a tool is needed, explain what you'll do briefly."""
 
         return reply, tool_trace, "fallback"
 
-    async def _call_llm(
-        self, client: AsyncOpenAI, history: list[dict], user_text: str
-    ) -> str:
+    async def _call_llm(self, client: AsyncOpenAI, history: list[dict], user_text: str) -> str:
         """Call OpenAI API with conversation history."""
         messages = [{"role": "system", "content": self.system_prompt}]
 

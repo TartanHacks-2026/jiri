@@ -1,6 +1,5 @@
 """Redis-backed session store for multi-laptop consistency."""
 
-import json
 import os
 import uuid
 from datetime import datetime

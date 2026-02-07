@@ -4,10 +4,10 @@ import time
 
 from fastapi import APIRouter
 
-from src.orchestrator import agent, check_end_conversation
-from src.session import session_store
-
-from .models import DebugInfo, TurnRequest, TurnResponse
+from jiri.schemas import DebugInfo, TurnRequest, TurnResponse
+from orchestrator import agent
+from orchestrator.fallback import check_end_conversation
+from session.store import session_store
 
 router = APIRouter()
 
@@ -47,6 +47,14 @@ async def turn(request: TurnRequest) -> TurnResponse:
         )
 
     # Process through agent
+    # Agent process_turn signature: process_turn(session_id, user_text)
+    # Check if agent.agent is the instance or agent is the module.
+    # In src/orchestrator/agent.py, 'agent' variable is the instance.
+    # We imported 'agent' from 'orchestrator'.
+    # 'from orchestrator import agent' -> this imports the MODULE agent.py?
+    # No, src/orchestrator/__init__.py might export something.
+    # Let's verify src/orchestrator/__init__.py
+
     reply_text, tool_trace, mode = await agent.process_turn(session_id, request.user_text)
 
     latency_ms = int((time.time() - start_time) * 1000)

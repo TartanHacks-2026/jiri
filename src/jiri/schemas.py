@@ -17,7 +17,9 @@ class MetaInfo(BaseModel):
 class TurnRequest(BaseModel):
     """Request body for POST /turn endpoint."""
 
-    session_id: str = Field(default="", description="Session ID for continuity, empty for new session")
+    session_id: str = Field(
+        default="", description="Session ID for continuity, empty for new session"
+    )
     user_text: str = Field(..., description="User's transcribed speech input")
     user_id: Optional[str] = Field(default=None, description="Optional user identifier")
     client: str = Field(default="shortcut", description="Client type: shortcut, app, web")
