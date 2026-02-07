@@ -66,6 +66,13 @@ MCP_REGISTRY = [
         "description": "Retrieve weather conditions for any coordinates - Access multi-day forecasts with hourly detail - Analyze historical weather trends - Check air quality metrics and UV exposure",
         "keywords": ["weather", "forecast", "hourly", "historical", "air quality", "UV exposure"],
     },
+    {
+        "url": "http://localhost:3333/mcp",
+        "name": "Uber MCP",
+        "category": "Uber",
+        "description": "Retrieve Uber ride information and pricing details for any location",
+        "keywords": ["uber", "ride", "pricing", "location", "transportation", "fare", "estimate"],
+    },
 ]
 async def main():
     api_key = os.getenv("DEDALUS_API_KEY")
