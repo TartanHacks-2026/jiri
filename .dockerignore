@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+venv
+.venv
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# Environment
+.env
+.env.local
+
+# Docker
+.docker
+
+# Docs (not needed in container)
+docs/
+*.md
+!README.md
+
+# Tests (optional - include if you want to run tests in container)
+# tests/
