@@ -111,23 +111,27 @@ Cache now contains: [yahoo-finance-mcp]
 ```
 
 ```
-You: What's the weather in Seattle?
+You: Send an email to john@example.com about the meeting
 
-1. Router checks cache → Has stock server, but no weather
-2. Auto-discovers "weather" tools
-3. Finds: windsor/open-meteo-mcp
-4. Connects and executes weather lookup
-5. Returns current Seattle weather ✅
+1. Router checks cache → Has stock server, but no email
+2. Auto-discovers "email" tools
+3. Finds: Gmail MCP server
+4. Connects and sends email
+5. Returns confirmation ✅
 
-Cache now contains: [yahoo-finance-mcp, open-meteo-mcp]
+Cache now contains: [yahoo-finance-mcp, gmail-mcp]
 ```
 
 ```
-You: How is AAPL stock doing?
+You: What's on my calendar today?
 
-1. Router checks cache → Found yahoo-finance-mcp! ⚡
-2. Reuses cached server (no discovery needed)
-3. Returns AAPL data instantly ✅
+1. Router checks cache → Found gmail-mcp, discovers calendar
+2. Auto-discovers "calendar" tools
+3. Finds: Calendar MCP server
+4. Fetches today's events
+5. Returns calendar schedule ✅
+
+Cache now contains: [yahoo-finance-mcp, gmail-mcp, calendar-mcp]
 
 🎉 The agent just got faster! Cached tools respond in ~1s vs ~3s for discovery.
 ```
@@ -138,20 +142,20 @@ You: How is AAPL stock doing?
 First Session (Cold Start):
   Query 1: "MSFT stock" → Discovers Yahoo Finance → 3s
   Query 2: "AAPL stock" → Uses cached Yahoo Finance → 1s ⚡
-  Query 3: "Weather in NYC" → Discovers Weather → 3s
+  Query 3: "Send email to team" → Discovers Gmail → 3s
   
-  Usage logged: {yahoo-finance: 2, weather: 1}
+  Usage logged: {yahoo-finance: 2, gmail: 1}
 
 Second Session (Learned Preferences):
   Startup: Preloads yahoo-finance (most used) ← AUTOMATIC!
   Query 1: "TSLA stock" → Uses preloaded Yahoo Finance → 1s ⚡
-  Query 2: "Weather in LA" → Discovers Weather → 3s
+  Query 2: "Check my calendar" → Discovers Calendar → 3s
   
-  Usage logged: {yahoo-finance: 3, weather: 2}
+  Usage logged: {yahoo-finance: 3, gmail: 1, calendar: 1}
 
 Third Session (Even Smarter):
-  Startup: Preloads yahoo-finance AND weather ← DOUBLE AUTOMATIC!
-  All queries: ~1s (everything cached) ⚡⚡⚡
+  Startup: Preloads yahoo-finance AND gmail ← DOUBLE AUTOMATIC!
+  Most queries: ~1s (everything cached) ⚡⚡⚡
 ```
 
 **Key Insight:** Jiri optimizes itself based on YOUR usage patterns. The more you use it, the faster and smarter it becomes.
@@ -161,35 +165,45 @@ Third Session (Even Smarter):
 Jiri doesn't just discover tools - it intelligently **chains them together** to complete complex workflows:
 
 ```
-You: Check the weather in Seattle and email it to john@example.com
+You: Explain the TensorFlow GitHub repo and email the summary to my team
 
-1. Router analyzes query → Identifies two needs: weather + email
-2. Discovers weather tool → Executes weather lookup → Gets Seattle weather data
-3. Discovers Gmail tool → Composes and sends email with weather info
+1. Router analyzes query → Identifies two needs: repo analysis + email
+2. Discovers Deep Wiki tool → Analyzes TensorFlow repository structure and code
+3. Discovers Gmail tool → Composes and sends email with repo explanation
 4. Returns confirmation ✅
 
-🔗 Two tools chained automatically from a single natural language request!
+🔗 GitHub Analysis + Email tools chained automatically from a single natural language request!
 ```
 
 ```
 You: Get the latest TSLA stock price and tweet about it
 
 1. Router discovers Yahoo Finance → Fetches TSLA stock data
-2. Router discovers Twitter tool → Formats and posts tweet with stock info
+2. Router discovers X API tool → Formats and posts tweet with stock info
 3. Returns tweet confirmation with link ✅
 
 🔗 Finance + Social Media tools working together seamlessly!
 ```
 
 ```
-You: Find my calendar events today, get weather for those locations, and email summary
+You: Check my calendar for tomorrow, research the meeting topics with Sonar, and email me the briefing
 
-1. Calendar tool → Fetches today's events
-2. Weather tool → Gets weather for each event location
-3. Gmail tool → Composes comprehensive email with events + weather
+1. Calendar tool → Fetches tomorrow's events and meeting topics
+2. Sonar tool → Deep web search on each meeting topic for context
+3. Gmail tool → Composes comprehensive briefing email with research
 4. Sends to your inbox ✅
 
 🔗 Three tools chained for a sophisticated multi-step workflow!
+```
+
+```
+You: Analyze the React GitHub repo, then tweet the key insights
+
+1. Deep Wiki tool → Analyzes React repository architecture and features
+2. X API tool → Formats insights into engaging tweet thread
+3. Posts to your Twitter account ✅
+
+🔗 GitHub code analysis meets social sharing!
 ```
 
 **Why This Matters:**
@@ -203,13 +217,15 @@ You: Find my calendar events today, get weather for those locations, and email s
 **🧠 Semantic Discovery**
 - Natural language queries → Semantic search → Right tool every time
 - "MSFT stock" automatically matches financial servers
-- "Weather in Seattle" finds meteorology tools
+- "Explain this GitHub repo" finds Deep Wiki tool
+- "Send email" discovers Gmail, "post tweet" finds X API
 - No hardcoding, no manual configuration
 
 **🔗 Automatic Tool Chaining**
 - Tools can automatically chain together to accomplish complex tasks
-- "Get weather and email it" → Discovers weather tool → Discovers Gmail → Chains execution
-- "Check my calendar and tweet about it" → Calendar tool → Twitter tool → Seamless flow
+- "Explain GitHub repo and email it" → Discovers Deep Wiki → Discovers Gmail → Chains execution
+- "Check my calendar and tweet about it" → Calendar tool → X API tool → Seamless flow
+- "Use Sonar to research topics and post findings" → Sonar → X API → Automated workflow
 - Multi-step workflows happen automatically based on natural language queries
 - No manual workflow configuration required
 
@@ -278,6 +294,22 @@ You: Compare AAPL and NVDA
 You: Give me OHLCV data for TSLA
 ```
 
+### GitHub Repository Analysis
+
+```
+You: Explain the PyTorch GitHub repository
+You: Analyze the structure of the kubernetes/kubernetes repo
+You: What does the FastAPI repo do and how is it organized?
+```
+
+### Web Research
+
+```
+You: Use Sonar to research the latest AI developments
+You: Search for information about quantum computing breakthroughs
+You: Find recent articles about machine learning trends
+```
+
 ### Web Scraping
 
 ```
@@ -285,18 +317,13 @@ You: Scrape https://www.scrapethissite.com/pages/simple/
 You: Check this GitHub repo https://github.com/user/repo
 ```
 
-### Weather
-
-```
-You: What's the weather in Seattle?
-You: Weather forecast for Pittsburgh?
-```
-
-### Social Media
+### Social Media (X/Twitter)
 
 ```
 You: What are Elon Musk's recent tweets?
+You: Post a tweet about our product launch
 You: Show me trending topics on X
+You: Check my Twitter mentions
 ```
 
 ### Email (Gmail)
@@ -335,27 +362,36 @@ You: Best hotels in San Francisco
 Jiri can automatically chain multiple tools together to accomplish complex tasks:
 
 ```
-You: Check the weather in Seattle and send it to john@example.com
+You: Analyze the LangChain GitHub repo and email the summary to my team
 
-1. Discovers and uses weather tool → Gets Seattle weather
-2. Discovers and uses Gmail tool → Sends email with weather info
-✅ Both tools executed seamlessly in sequence!
+1. Discovers Deep Wiki tool → Analyzes LangChain repository structure and code
+2. Discovers Gmail tool → Sends comprehensive repo explanation email
+✅ GitHub analysis and communication chained seamlessly!
 ```
 
 ```
 You: Find my calendar events today and tweet about them
 
-1. Uses calendar tool → Fetches today's events
-2. Uses Twitter tool → Posts summary tweet
+1. Uses Calendar tool → Fetches today's events
+2. Uses X API tool → Posts summary tweet
 ✅ Tools chain automatically based on your query!
 ```
 
 ```
-You: Get MSFT stock price and email it to my team
+You: Use Sonar to research competitors and email me the findings
 
-1. Uses Yahoo Finance tool → Gets MSFT price
-2. Uses Gmail tool → Sends email to recipients
+1. Uses Sonar tool → Deep web search on competitors
+2. Uses Gmail tool → Sends detailed research report
 ✅ Multi-tool workflows happen automatically!
+```
+
+```
+You: Get MSFT stock price, analyze their GitHub repos, then email full analysis
+
+1. Yahoo Finance tool → Gets real-time MSFT data
+2. Deep Wiki tool → Analyzes Microsoft's key GitHub repositories
+3. Gmail tool → Sends comprehensive analysis email with stock data and repo insights
+✅ Three tools working together for sophisticated analysis!
 ```
 
 ---
@@ -424,6 +460,20 @@ MCP_REGISTRY = [
         "description": "Stock market data, quotes, financial stats",
         "keywords": ["stocks", "equities", "ticker", "price"],
     },
+    {
+        "url": "deep-wiki-mcp",
+        "name": "Deep Wiki",
+        "category": "research",
+        "description": "GitHub repository analysis and code explanation",
+        "keywords": ["github", "repository", "repo", "code analysis", "explain"],
+    },
+    {
+        "url": "gmail-mcp",
+        "name": "Gmail",
+        "category": "email",
+        "description": "Send and read emails via Gmail",
+        "keywords": ["email", "gmail", "send", "inbox"],
+    },
     # Add more servers here...
 ]
 ```
@@ -484,9 +534,9 @@ async def test():
     runner = DedalusRunner(client)
     
     result = await runner.run(
-        messages=[{"role": "user", "content": "What is MSFT stock price?"}],
+        messages=[{"role": "user", "content": "Explain the TensorFlow GitHub repository"}],
         model="gpt-4o",
-        mcp_servers=["tsion/yahoo-finance-mcp"],
+        mcp_servers=["deep-wiki-mcp"],
         max_steps=10,
     )
     print(result.final_output)
@@ -502,8 +552,8 @@ client = Dedalus(api_key="your-key")
 registry = ToolRegistry(client, MCP_REGISTRY)
 registry.cache_embeddings()
 
-results = registry.search(["stock market data"])
-print(results)  # Should find yahoo-finance-mcp
+results = registry.search(["github repository analysis", "email sending", "calendar management"])
+print(results)  # Should find deep-wiki, gmail, calendar
 ```
 
 ---
@@ -575,10 +625,10 @@ Add your own keyword detection in `core.py`:
 
 ```python
 # In handle_turn(), add:
-elif any(word in query_lower for word in ['movie', 'film', 'imdb']):
+elif any(word in query_lower for word in ['github', 'repository', 'repo', 'analyze']):
     needs_discovery = True
-    discovery_queries = ["movie database", "film info", "IMDB"]
-    self._log(f"  [Query needs movies, but no movie server - auto-discovering]")
+    discovery_queries = ["github repository", "deep wiki", "code analysis"]
+    self._log(f"  [Query needs GitHub analysis, but no repo tool - auto-discovering]")
 ```
 
 ### Custom MCP Server
@@ -587,11 +637,11 @@ Add to `MCP_REGISTRY`:
 
 ```python
 {
-    "url": "your-username/your-mcp-server",
-    "name": "Your Server",
-    "category": "custom",
-    "description": "What your server does",
-    "keywords": ["keyword1", "keyword2", "keyword3"],
+    "url": "your-username/calendar-mcp",
+    "name": "Calendar Integration",
+    "category": "productivity",
+    "description": "Manage calendar events, schedule meetings, check availability",
+    "keywords": ["calendar", "schedule", "meeting", "appointment", "events"],
 }
 ```
 
@@ -611,11 +661,12 @@ relative_score_cutoff: float = 0.5  # Lower = include more results
 ### Finance
 - **tsion/yahoo-finance-mcp**: Stock quotes, market data, financial stats
 
+### Research & Knowledge
+- **Deep Wiki**: GitHub repository analysis, code structure explanation, repo insights
+- **Sonar**: Advanced web search, real-time information discovery, deep research
+
 ### Web
 - **issac/fetch-mcp**: Webpage scraping, robots.txt, URL fetching
-
-### Weather
-- **windsor/open-meteo-mcp**: Weather forecasts, conditions, historical data
 
 ### Email & Communication
 - **Gmail MCP**: Read, send, search emails, manage inbox
@@ -623,7 +674,7 @@ relative_score_cutoff: float = 0.5  # Lower = include more results
 
 ### Social Media
 - **windsor/x-api-mcp**: Twitter/X API for tweets, users, timelines
-- **Twitter MCP**: Post tweets, read mentions, check trends, manage Twitter account
+- **X API MCP**: Post tweets, read mentions, check trends, manage Twitter account
 
 ### Travel
 - **windsor/foursquare-places-mcp**: Location search, restaurant recommendations
@@ -803,13 +854,13 @@ Edit the keyword detection in `core.py` → `handle_turn()`:
 
 ```python
 # Add new category
-is_movies = any(word in query_lower for word in ['movie', 'film', 'imdb'])
+is_research = any(word in query_lower for word in ['github', 'repository', 'repo', 'analyze', 'explain code'])
 
 # Add to if/elif chain
-elif is_movies and not any('movie' in url.lower() for url in active_urls):
+elif is_research and not any('wiki' in url.lower() or 'github' in url.lower() for url in active_urls):
     needs_discovery = True
-    discovery_queries = ["movie database", "film", "IMDB"]
-    self._log(f"  [Query needs movies, but no movie server - auto-discovering]")
+    discovery_queries = ["github repository", "deep wiki", "code analysis", "repo explanation"]
+    self._log(f"  [Query needs GitHub analysis, but no repo tool - auto-discovering]")
 ```
 
 ---
@@ -856,7 +907,11 @@ uv run python dedalus.py --debug
 
 **Solution**: Improve keywords in MCP_REGISTRY
 ```python
-"keywords": ["specific", "unique", "keywords", "here"]
+# Good example - specific and comprehensive
+"keywords": ["gmail", "email", "send", "inbox", "compose", "mail"]
+
+# Better than generic:
+"keywords": ["communication"]  # Too vague
 ```
 
 ### Problem: 500 errors from Dedalus API
