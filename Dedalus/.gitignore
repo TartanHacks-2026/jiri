@@ -1,0 +1,76 @@
+# Jiri .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+!.env.example
+
+# Agent config (internal)
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.tox/
+
+# Docker
+.docker/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker overrides (local config)
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+
+#Folder
+Jiri_xcode/
+apps/web/node_modules/
+apps/web/.next/
+
+# Phone-Only exclusions
+node_modules/
+apps/
+infra/
+ios-starter/
+Jiri_xcode/
+tests/
+scripts/
+docs/
+plans/
+agent_docs/
+mcp_server*.py
+uber_mcp.py
+list_models.py
+dedalus.py
+test_*.sh
+setup_dedalus.sh
+QUICKSTART.md
+DEDALUS_README.md

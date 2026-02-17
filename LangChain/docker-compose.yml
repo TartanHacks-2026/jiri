@@ -1,0 +1,109 @@
+version: "3.9"
+
+services:
+  # TimescaleDB - Time-series optimized PostgreSQL
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: jiri-timescale
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jiri}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jiri_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-jiri}
+    ports:
+      - "${TIMESCALE_PORT:-5432}:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./infra/timescale/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jiri}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ChromaDB - Vector store for RAG
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: jiri-chroma
+    ports:
+      - "${CHROMA_PORT:-8001}:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+
+  # Redis - Session state and caching
+  redis:
+    image: redis:7-alpine
+    container_name: jiri-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - jiri-network
+
+  # FastAPI Backend
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jiri-app
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-jiri}:${POSTGRES_PASSWORD:-jiri_dev_password}@timescaledb:5432/${POSTGRES_DB:-jiri}
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - ./src:/app/src:ro # Enable hot reload for source code
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    # profiles:
+    #   - full  # Commented out to make it default for now
+    restart: unless-stopped
+    networks:
+      - jiri-network
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: jiri-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_AGENTUITY_API_URL=http://agent-runtime:3500
+      - NEXT_PUBLIC_JIRI_WS_URL=ws://app:8000/ws
+      - NEXT_PUBLIC_JIRI_SSE_URL=http://app:8000/events
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - jiri-network
+
+volumes:
+  timescale_data:
+  chroma_data:
+  redis_data:
+
+networks:
+  jiri-network:
+    driver: bridge
