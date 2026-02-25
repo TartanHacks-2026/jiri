@@ -289,6 +289,7 @@ class SmartRouter:
                 mcp_servers=active_urls if active_urls else None,
                 instructions=instructions,
                 max_steps=self._config.max_steps,
+                max_tokens=self._config.max_tokens,
             )
             self._log(f"  [Execution completed: steps_used={result.steps_used if hasattr(result, 'steps_used') else 'unknown'}]")
             
@@ -334,6 +335,7 @@ class SmartRouter:
                     mcp_servers=active_urls if active_urls else None,
                     instructions=instructions,
                     max_steps=self._config.max_steps,
+                    max_tokens=self._config.max_tokens,
                 )
                 self._log(f"  [Re-run completed successfully]")
             except Exception as e:
@@ -434,6 +436,7 @@ class SmartRouter:
             mcp_servers=active_urls if active_urls else None,
             instructions=instructions,
             max_steps=self._config.max_steps,
+            max_tokens=self._config.max_tokens,
         )
 
         if self._newly_discovered:

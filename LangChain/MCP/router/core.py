@@ -87,7 +87,7 @@ class SmartRouter:
         )
         self._cache = ToolCache(max_size=config.max_cache_size)
         self._health = HealthTracker(cooldown_seconds=config.health_cooldown_seconds)
-        self._metrics = UsageMetrics(metrics_file=config.metrics_file)
+        self._metrics = UsageMetrics()
         self._history = ConversationHistory(max_turns=config.max_history_turns)
         
         # Track tool discoveries (set per turn)
@@ -102,26 +102,24 @@ class SmartRouter:
     # Tool Discovery
     # ------------------------------------------------------------------
     
-    def _discover_tools_impl(self, queries: List[str]) -> str:
+    async def _discover_tools_impl(self, queries: List[str]) -> str:
         """Internal implementation of discover_tools."""
         self._discover_call_count += 1
 
-        # Once tools are found, stop immediately — no more searching
         if self._newly_discovered:
             return "STOP. Tools already found and loading. Answer the user now."
 
-        # Allow up to 5 attempts with different keywords, then give up
         if self._discover_call_count > 5:
             return "No tools found after multiple attempts. Answer with your general knowledge."
 
-        self._log(f"  [🔍 discover_tools called with queries: {queries}]")
+        self._log(f"  [\U0001f50d discover_tools called with queries: {queries}]")
         results = self._registry.search(queries)
-        self._log(f"  [🔍 Found {len(results)} matching tools]")
+        self._log(f"  [\U0001f50d Found {len(results)} matching tools]")
         for r in results:
             url = r["url"]
             if self._health.is_healthy(url) and url not in self._newly_discovered:
                 self._newly_discovered.append(url)
-                evicted = self._cache.add(url)
+                evicted = await self._cache.add(url)
                 if evicted:
                     self._log(f"  [Cache evicted: {evicted}]")
         if self._newly_discovered:
@@ -144,18 +142,20 @@ class SmartRouter:
         print(f"Cached embeddings for {count} tool(s).")
 
         # Preload from historical usage
-        top = self._metrics.get_top_tools(self._config.preload_count)
+        top = await self._metrics.get_top_tools(self._config.preload_count)
         if top:
-            # Only preload tools still in the registry
             registry_urls = {t["url"] for t in self._config.registry}
             to_preload = [u for u in top if u in registry_urls]
-            self._cache.preload(to_preload)
+            await self._cache.preload(to_preload)
             if to_preload:
                 print(f"Preloaded {len(to_preload)} tool(s) from usage history: {', '.join(to_preload)}")
 
-    def shutdown(self) -> None:
-        """Flush metrics on exit."""
-        self._metrics.flush_session()
+    async def shutdown(self) -> None:
+        """Close DB and Redis connections on exit."""
+        from .db import close_pool
+        from .redis_client import close_redis
+        await close_pool()
+        await close_redis()
 
     # ------------------------------------------------------------------
     # MCP Client helpers
@@ -202,27 +202,27 @@ class SmartRouter:
         self._newly_discovered: List[str] = []
         self._discover_call_count = 0
 
-        # --- discover_tools as a LangChain tool ---
-        router_self = self  # capture for closure
+        # --- discover_tools as an async LangChain tool ---
+        router_self = self
 
         @langchain_tool
-        def discover_tools(queries: list[str]) -> str:
+        async def discover_tools(queries: list[str]) -> str:
             """Search for MCP tool servers that can handle specific capabilities.
-            
+
             Call this when you need external data but don't have a matching server.
             Use 2-3 descriptive search terms per capability.
-            
+
             Examples:
             - discover_tools(queries=["weather", "forecast", "conditions"])
             - discover_tools(queries=["github", "repository", "code search"])
             - discover_tools(queries=["stock market", "financial data"])"""
-            return router_self._discover_tools_impl(queries)
+            return await router_self._discover_tools_impl(queries)
 
         # Build messages
         messages = self._history.append_user(user_input)
 
         # Active servers (healthy subset of cache)
-        cached_urls = self._cache.get_urls()
+        cached_urls = await self._cache.get_urls()
         active_urls = self._health.filter_healthy(cached_urls)
         
         if cached_urls and not active_urls:
@@ -243,7 +243,7 @@ class SmartRouter:
         # --- Check if discovery happened → re-run with new servers ---
         if self._newly_discovered:
             self._log(f"  [Discovered {len(self._newly_discovered)} new tool(s): {', '.join(self._newly_discovered)}]")
-            active_urls = self._health.filter_healthy(self._cache.get_urls())
+            active_urls = self._health.filter_healthy(await self._cache.get_urls())
             self._log(f"  [Re-running with {len(active_urls)} active servers: {active_urls}]")
             instructions = self._build_instructions(active_urls)
             
@@ -256,7 +256,7 @@ class SmartRouter:
             self._log(f"  [Re-run completed successfully]")
 
         # --- Post-run processing ---
-        self._post_run(response, active_urls)
+        await self._post_run(response, active_urls)
 
         # Extract final text from response
         return self._extract_response(response)
@@ -324,26 +324,23 @@ class SmartRouter:
                             break
 
                 if failed_url and len(remaining_urls) > 1:
-                    # Remove the failing server and retry with the rest
-                    self._log(f"  [⚠️ Server {failed_url} failed — removing and retrying with remaining servers]")
+                    self._log(f"  [\u26a0\ufe0f Server {failed_url} failed — removing and retrying with remaining servers]")
                     self._health.mark_unhealthy(failed_url)
-                    self._cache.evict(failed_url)
+                    await self._cache.evict(failed_url)
                     remaining_urls.remove(failed_url)
-                    continue  # retry the while loop
+                    continue
                 elif failed_url:
-                    # Only server left failed — mark unhealthy, fall through to discover-only
-                    self._log(f"  [⚠️ Server {failed_url} failed — falling back to discover-tools only]")
+                    self._log(f"  [\u26a0\ufe0f Server {failed_url} failed — falling back to discover-tools only]")
                     self._health.mark_unhealthy(failed_url)
-                    self._cache.evict(failed_url)
+                    await self._cache.evict(failed_url)
                     remaining_urls.remove(failed_url)
-                    continue  # will run with 0 servers (discover_tools only)
+                    continue
                 else:
-                    # Can't identify failing server — mark all newly discovered as unhealthy
-                    self._log(f"  [❌ Execution error: {e}]")
+                    self._log(f"  [\u274c Execution error: {e}]")
                     if self._newly_discovered:
                         for url in self._newly_discovered:
                             self._health.mark_unhealthy(url)
-                            self._cache.evict(url)
+                            await self._cache.evict(url)
                     self._history.rollback_last_user()
                     raise
 
@@ -360,20 +357,20 @@ class SmartRouter:
         router_self = self
 
         @langchain_tool
-        def discover_tools(queries: list[str]) -> str:
+        async def discover_tools(queries: list[str]) -> str:
             """Search for MCP tool servers that can handle specific capabilities.
-            
+
             Call this when you need external data but don't have a matching server.
             Use 2-3 descriptive search terms per capability.
-            
+
             Examples:
             - discover_tools(queries=["weather", "forecast", "conditions"])
             - discover_tools(queries=["github", "repository", "code search"])
             - discover_tools(queries=["stock market", "financial data"])"""
-            return router_self._discover_tools_impl(queries)
+            return await router_self._discover_tools_impl(queries)
 
         messages = self._history.append_user(user_input)
-        active_urls = self._health.filter_healthy(self._cache.get_urls())
+        active_urls = self._health.filter_healthy(await self._cache.get_urls())
         instructions = self._build_instructions(active_urls)
 
         # Probe run (non-streaming) — may trigger discovery
@@ -386,7 +383,7 @@ class SmartRouter:
 
         if self._newly_discovered:
             self._log(f"  [Discovered {len(self._newly_discovered)} new tool(s): {', '.join(self._newly_discovered)}]")
-            active_urls = self._health.filter_healthy(self._cache.get_urls())
+            active_urls = self._health.filter_healthy(await self._cache.get_urls())
             instructions = self._build_instructions(active_urls)
             
             # Build streaming config
@@ -432,7 +429,7 @@ class SmartRouter:
             # No discovery — yield the full result
             output = self._extract_response(result)
             yield output
-            self._post_run(result, active_urls)
+            await self._post_run(result, active_urls)
 
     # ------------------------------------------------------------------
     # Message conversion
@@ -456,7 +453,7 @@ class SmartRouter:
     # Internals
     # ------------------------------------------------------------------
 
-    def _post_run(self, result: dict, active_urls: List[str]) -> None:
+    async def _post_run(self, result: dict, active_urls: List[str]) -> None:
         """LRU touch, health tracking, metrics, history update."""
         response_messages = result.get("messages", [])
         
@@ -473,9 +470,9 @@ class SmartRouter:
         # If tools were executed successfully, touch all active servers
         if tool_was_used and not has_error:
             for url in active_urls:
-                self._cache.touch(url)
-                self._metrics.record_tool_use(url)
-                self._log(f"  [✓ Server {url} used successfully]")
+                await self._cache.touch(url)
+                await self._metrics.record_tool_use(url)
+                self._log(f"  [\u2713 Server {url} used successfully]")
 
         # Update conversation history
         if has_error:
@@ -483,7 +480,7 @@ class SmartRouter:
             for url in active_urls:
                 self._log(f"  [Marking {url} as unhealthy due to tool error]")
                 self._health.mark_unhealthy(url)
-                self._cache.evict(url)
+                await self._cache.evict(url)
             self._log(f"  [Rolling back failed user query from history to prevent contamination]")
             self._history.rollback_last_user()
         else:
@@ -542,9 +539,9 @@ class SmartRouter:
     # ------------------------------------------------------------------
 
     @property
-    def cache_contents(self) -> List[Dict]:
+    async def cache_contents(self) -> List[Dict]:  # type: ignore[override]
         """Return cached servers with friendly names for the UI."""
-        urls = self._cache.get_urls()
+        urls = await self._cache.get_urls()
         result = []
         for url in urls:
             name = url

@@ -10,7 +10,13 @@ from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
+try:
+    from langchain_google_genai import GoogleGenerativeAIEmbeddings
+except ImportError:
+    GoogleGenerativeAIEmbeddings = None
+
 from router import SmartRouter, RouterConfig
+from router.db import load_registry
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=True)
 
@@ -19,44 +25,6 @@ app = FastAPI()
 # Global router instance
 router: SmartRouter = None
 active_connections: List[WebSocket] = []
-
-# MCP Registry
-MCP_REGISTRY = [
-    {
-        "url":"https://mcp.api.coingecko.com/sse",
-        "name": "CoinGecko MCP",
-        "category": "Crypto",
-        "transport": "sse",
-        "description": "Get cryptocurrency prices, market data, coin info, and trading volumes for Bitcoin, Ethereum, and other tokens",
-        "keywords": ["crypto", "cryptocurrency", "bitcoin", "ethereum", "coin", "token", "price", "market cap", "trading", "coingecko"],
-    },
-    {
-        "url": "https://mcp.deepwiki.com/mcp",
-        "name": "Github Repo Search MCP (DeepWiki)",
-        "category": "Github",
-        "transport": "http",
-        "description": "Search Github repositories for code, documentation, and other resources",
-        "keywords": ["github", "repo", "search", "code", "documentation", "resources"],
-    },
-    {
-        "url": "https://remote.mcpservers.org/fetch/mcp",
-        "name": "Web Fetch MCP",
-        "category": "Web",
-        "transport": "http",
-        "description": "Fetch web pages for code, documentation, and other resources",
-        "keywords": ["web", "fetch", "scraping", "documentation", "resources"],
-    },
-    {
-        "url": "news-server-stdio",
-        "name": "NewsAPI",
-        "category": "News",
-        "transport": "stdio",
-        "command": "uv",
-        "args": ["run", "python", str(Path(__file__).resolve().parent / "servers" / "news_server.py")],
-        "description": "Get the latest news articles and headlines about any topic using NewsAPI",
-        "keywords": ["news", "headlines", "articles", "current events", "breaking news", "journalism"],
-    },
-]
 
 
 async def broadcast_log(message: str, log_type: str = "info"):
@@ -108,23 +76,61 @@ class WebRouter(SmartRouter):
 async def startup():
     """Initialize the router on startup."""
     global router
-    
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
-        raise ValueError("OPENAI_API_KEY not set")
-    
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("Neither OPENROUTER_API_KEY nor OPENAI_API_KEY set")
+
+    # Load MCP server registry from Postgres
+    try:
+        registry = await load_registry()
+        print(f"Loaded {len(registry)} MCP server(s) from database")
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to load MCP registry from Postgres: {e}\n"
+            "Have you run: uv run python scripts/init_db.py ?"
+        ) from e
+
     # Initialize LangChain models
-    chat_model = ChatOpenAI(
-        model="gpt-4.1-mini",
-        api_key=api_key,
-    )
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small",
-        api_key=api_key,
-    )
+    # If using OpenRouter, point base_url there
+    is_openrouter = "OPENROUTER" in os.environ or api_key.startswith("sk-or-")
     
-    config = RouterConfig(registry=MCP_REGISTRY, debug=True)  # Always debug for web UI
+    chat_kwargs = {
+        "model": "meta-llama/llama-3.1-8b-instruct" if is_openrouter else "gpt-4.1-mini",
+        "api_key": api_key,
+    }
+    if is_openrouter:
+        chat_kwargs["base_url"] = "https://openrouter.ai/api/v1"
+
+    chat_model = ChatOpenAI(**chat_kwargs)
     
+    # Embeddings (OpenRouter doesn't do embeddings easily)
+    # 1. Try OpenAI directly if key is explicitly set
+    # 2. Try Gemini if GEMINI_API_KEY is available
+    # 3. Fallback to OpenRouter key (usually fails for embeddings)
+    openai_key = os.getenv("OPENAI_API_KEY")
+    gemini_key = os.getenv("GEMINI_API_KEY")
+    
+    if openai_key:
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-3-small",
+            api_key=openai_key,
+        )
+    elif gemini_key and GoogleGenerativeAIEmbeddings is not None:
+        embeddings = GoogleGenerativeAIEmbeddings(
+            model="models/text-embedding-004",
+            google_api_key=gemini_key,
+        )
+    else:
+        # Fallback to whatever key we have (likely OpenRouter, which may fail)
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-3-small",
+            api_key=api_key,
+        )
+
+    config = RouterConfig(registry=registry, debug=True)
+
     router = WebRouter(
         chat_model=chat_model,
         embeddings=embeddings,
@@ -132,7 +138,15 @@ async def startup():
     )
     await router.initialize()
     router.set_loop(asyncio.get_running_loop())
-    print("✅ Router initialized")
+    print("\u2705 Router initialized")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    """Gracefully close DB and Redis connections."""
+    if router:
+        await router.shutdown()
+    print("\u2705 Router shut down cleanly")
 
 
 @app.websocket("/ws")
@@ -145,7 +159,7 @@ async def websocket_endpoint(websocket: WebSocket):
         # Send initial cache state
         await websocket.send_json({
             "type": "cache_update",
-            "servers": router.cache_contents
+            "servers": await router.cache_contents
         })
         
         while True:
@@ -172,11 +186,10 @@ async def websocket_endpoint(websocket: WebSocket):
                         "type": "error",
                         "message": str(e)
                     })
-                finally:
                     # Always send updated cache (discover_tools may have cached servers even if execution failed)
                     await websocket.send_json({
                         "type": "cache_update",
-                        "servers": router.cache_contents
+                        "servers": await router.cache_contents
                     })
                     
     except WebSocketDisconnect:

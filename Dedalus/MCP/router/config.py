@@ -13,6 +13,7 @@ class RouterConfig:
 
     # --- Models ---
     execution_model: str = "anthropic/claude-haiku-4-5"  # Fast and good at tool calling
+    max_tokens: int = 1024  # Avoid provider defaults that may require streaming
 
     # --- Semantic search ---
     similarity_threshold: float = 0.35  # Higher = more strict

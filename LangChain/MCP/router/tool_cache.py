@@ -1,60 +1,79 @@
-"""LRU cache for active MCP server URLs.
+"""Redis-backed LRU cache for active MCP server URLs.
 
-Keeps the most recently *used* servers connected. When capacity is exceeded,
-the least-recently-used server is evicted.
+Replaces the in-memory OrderedDict with a Redis sorted set where
+the score is the insertion/touch timestamp. Eviction removes the
+lowest-scored (oldest) member when max_size is exceeded.
+
+The Redis key is ``mcp:tool_cache``.
 """
 
 from __future__ import annotations
 
-from collections import OrderedDict
+import time
 from typing import List
+
+from .redis_client import get_redis
+
+CACHE_KEY = "mcp:tool_cache"
 
 
 class ToolCache:
-    """Bounded LRU cache of MCP server URLs."""
+    """Redis-backed bounded LRU cache of MCP server URLs."""
 
     def __init__(self, max_size: int = 10):
         self._max_size = max_size
-        self._cache: OrderedDict[str, None] = OrderedDict()
 
     # ------------------------------------------------------------------
-    # Public API
+    # Internal helpers
     # ------------------------------------------------------------------
 
-    def add(self, url: str) -> str | None:
-        """Add a URL (or refresh it). Returns an evicted URL, if any."""
-        evicted = None
-        if url in self._cache:
-            self._cache.move_to_end(url)
-        else:
-            if len(self._cache) >= self._max_size:
-                evicted, _ = self._cache.popitem(last=False)  # evict oldest
-            self._cache[url] = None
+    def _redis(self):
+        return get_redis()
+
+    def _now(self) -> float:
+        return time.time()
+
+    # ------------------------------------------------------------------
+    # Public API  (all async — matches the async FastAPI context)
+    # ------------------------------------------------------------------
+
+    async def add(self, url: str) -> str | None:
+        """Add a URL (or refresh it). Returns an evicted URL if capacity exceeded."""
+        r = self._redis()
+        await r.zadd(CACHE_KEY, {url: self._now()})
+
+        # Evict oldest if over limit
+        evicted: str | None = None
+        size = await r.zcard(CACHE_KEY)
+        if size > self._max_size:
+            # ZPOPMIN returns list of (member, score) tuples — fetch 1
+            evicted_items = await r.zpopmin(CACHE_KEY, 1)
+            if evicted_items:
+                evicted = evicted_items[0]  # decode_responses=True → already str
         return evicted
 
-    def touch(self, url: str) -> None:
-        """Mark a URL as recently used (move to end)."""
-        if url in self._cache:
-            self._cache.move_to_end(url)
+    async def touch(self, url: str) -> None:
+        """Mark a URL as recently used."""
+        r = self._redis()
+        # Only update score if member exists
+        if await r.zscore(CACHE_KEY, url) is not None:
+            await r.zadd(CACHE_KEY, {url: self._now()})
 
-    def evict(self, url: str) -> None:
+    async def evict(self, url: str) -> None:
         """Remove a specific URL from the cache."""
-        self._cache.pop(url, None)
+        await self._redis().zrem(CACHE_KEY, url)
 
-    def get_urls(self) -> List[str]:
-        """Return all cached URLs (oldest first)."""
-        return list(self._cache.keys())
+    async def get_urls(self) -> List[str]:
+        """Return all cached URLs, oldest first."""
+        return await self._redis().zrange(CACHE_KEY, 0, -1)
 
-    def preload(self, urls: List[str]) -> None:
-        """Bulk-add URLs from metrics (oldest first so latest end up at tail)."""
+    async def preload(self, urls: List[str]) -> None:
+        """Bulk-add URLs (oldest first so latest end up with highest score)."""
         for url in urls:
-            self.add(url)
+            await self.add(url)
 
-    def __len__(self) -> int:
-        return len(self._cache)
+    async def __len__(self) -> int:  # type: ignore[override]
+        return await self._redis().zcard(CACHE_KEY)
 
-    def __contains__(self, url: str) -> bool:
-        return url in self._cache
-
-    def __repr__(self) -> str:
-        return f"ToolCache({list(self._cache.keys())})"
+    async def __contains__(self, url: str) -> bool:  # type: ignore[override]
+        return await self._redis().zscore(CACHE_KEY, url) is not None
