@@ -59,7 +59,10 @@ HOW YOU WORK:
 
 RULES:
 - ALWAYS try discover_tools() before telling the user you cannot do something.
-- NEVER fabricate real-time data. Use tools.
+- NEVER fabricate real-time data (prices, weather, news, live stats). Use tools.
+- If a tool server was found but FAILED to connect or returned an error, say exactly:
+  "I found a data source for this but it's currently unavailable. Please try again later."
+  DO NOT make up any numbers, prices, statistics, or facts in this case.
 - After discover_tools() succeeds, STOP discovering and answer normally — the tools will load.
 - Be concise, friendly, and helpful.\
 """
@@ -247,6 +250,9 @@ class SmartRouter:
             self._log(f"  [Re-running with {len(active_urls)} active servers: {active_urls}]")
             instructions = self._build_instructions(active_urls)
             
+            # Reset discover count so fallback runs can re-discover if ALL servers fail
+            self._discover_call_count = 0
+
             response = await self._run_agent(
                 messages=messages,
                 active_urls=active_urls,
