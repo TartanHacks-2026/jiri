@@ -6,143 +6,149 @@
     <title>Jiri - MCP Router</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        /* Markdown styles */
+        /* === JARVIS THEME ANIMATIONS === */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 4px rgba(6, 182, 212, 0.4); }
+            50% { box-shadow: 0 0 12px rgba(6, 182, 212, 0.8); }
+        }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scan-line {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .fade-in { animation: fade-in 0.3s ease-out; }
+        .blink { animation: blink 1.2s ease-in-out infinite; }
+
+        /* === GLASS PANELS === */
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(6, 182, 212, 0.12);
+        }
+        .glass-light {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .neon-border {
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.06), inset 0 0 15px rgba(6, 182, 212, 0.03);
+        }
+        .neon-border-bright {
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+        }
+
+        /* === SCROLLBAR === */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(6, 182, 212, 0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.4); }
+
+        /* === MARKDOWN (Dark theme) === */
         .markdown-content {
             line-height: 1.7;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            color: #e2e8f0;
         }
         .markdown-content h1 { 
-            font-size: 1.5em; 
-            font-weight: 700; 
-            margin: 0.8em 0 0.4em 0;
-            color: #1f2937;
+            font-size: 1.4em; font-weight: 700; margin: 0.8em 0 0.4em; color: #67e8f9;
         }
         .markdown-content h2 { 
-            font-size: 1.3em; 
-            font-weight: 700; 
-            margin: 0.7em 0 0.4em 0;
-            color: #374151;
+            font-size: 1.25em; font-weight: 700; margin: 0.7em 0 0.4em; color: #a5f3fc;
         }
         .markdown-content h3 { 
-            font-size: 1.15em; 
-            font-weight: 600; 
-            margin: 0.6em 0 0.3em 0;
-            color: #4b5563;
+            font-size: 1.1em; font-weight: 600; margin: 0.6em 0 0.3em; color: #cffafe;
         }
-        .markdown-content strong, .markdown-content b { 
-            font-weight: 700;
-            color: #111827;
-        }
-        .markdown-content em, .markdown-content i { 
-            font-style: italic; 
-        }
-        .markdown-content ul { 
-            list-style: disc; 
-            margin-left: 1.5em; 
-            margin: 0.5em 0; 
-        }
-        .markdown-content ol { 
-            list-style: decimal; 
-            margin-left: 1.5em; 
-            margin: 0.5em 0; 
-        }
-        .markdown-content li { 
-            margin: 0.4em 0;
-            line-height: 1.6;
-        }
-        .markdown-content p { 
-            margin: 0.6em 0;
-        }
-        .markdown-content p:first-child {
-            margin-top: 0;
-        }
-        .markdown-content p:last-child {
-            margin-bottom: 0;
-        }
+        .markdown-content strong, .markdown-content b { font-weight: 700; color: #f1f5f9; }
+        .markdown-content em, .markdown-content i { font-style: italic; color: #94a3b8; }
+        .markdown-content ul { list-style: disc; margin-left: 1.5em; margin: 0.5em 0; }
+        .markdown-content ol { list-style: decimal; margin-left: 1.5em; margin: 0.5em 0; }
+        .markdown-content li { margin: 0.3em 0; line-height: 1.6; }
+        .markdown-content p { margin: 0.5em 0; }
+        .markdown-content p:first-child { margin-top: 0; }
+        .markdown-content p:last-child { margin-bottom: 0; }
         .markdown-content code { 
-            background: #f3f4f6; 
-            padding: 0.2em 0.5em; 
-            border-radius: 4px; 
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-            font-size: 0.875em;
-            color: #be185d;
+            background: rgba(6, 182, 212, 0.1); 
+            padding: 0.15em 0.4em; border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace; font-size: 0.85em;
+            color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.15);
         }
         .markdown-content pre {
-            background: #1f2937;
-            color: #f9fafb;
-            padding: 1em;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 1em 0;
+            background: rgba(0, 0, 0, 0.5); color: #e2e8f0;
+            padding: 1em; border-radius: 8px; overflow-x: auto; margin: 0.8em 0;
+            border: 1px solid rgba(6, 182, 212, 0.1);
         }
-        .markdown-content pre code {
-            background: none;
-            padding: 0;
-            color: inherit;
-        }
-        .markdown-content table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 1.2em 0;
-            font-size: 0.9em;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-        }
+        .markdown-content pre code { background: none; padding: 0; color: inherit; border: none; }
+        .markdown-content table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.85em; }
         .markdown-content th {
-            background: #3b82f6;
-            color: white;
-            font-weight: 600;
-            padding: 0.75em 1em;
-            text-align: left;
-            border: none;
+            background: rgba(6, 182, 212, 0.15); color: #67e8f9; font-weight: 600;
+            padding: 0.6em 0.8em; text-align: left; border: 1px solid rgba(6, 182, 212, 0.1);
         }
         .markdown-content td {
-            padding: 0.75em 1em;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 0.6em 0.8em; border: 1px solid rgba(6, 182, 212, 0.08);
         }
-        .markdown-content tr:last-child td {
-            border-bottom: none;
-        }
-        .markdown-content tbody tr:nth-child(odd) {
-            background: #f9fafb;
-        }
-        .markdown-content tbody tr:nth-child(even) {
-            background: white;
-        }
-        .markdown-content tbody tr:hover {
-            background: #f3f4f6;
-        }
+        .markdown-content tbody tr:nth-child(odd) { background: rgba(6, 182, 212, 0.03); }
+        .markdown-content tbody tr:hover { background: rgba(6, 182, 212, 0.08); }
         .markdown-content blockquote {
-            border-left: 4px solid #3b82f6;
-            padding-left: 1em;
-            margin: 1em 0;
-            color: #6b7280;
-            font-style: italic;
+            border-left: 3px solid rgba(6, 182, 212, 0.4);
+            padding-left: 1em; margin: 0.8em 0; color: #94a3b8; font-style: italic;
         }
-        .markdown-content hr {
-            border: none;
-            border-top: 2px solid #e5e7eb;
-            margin: 1.5em 0;
-        }
+        .markdown-content hr { border: none; border-top: 1px solid rgba(6, 182, 212, 0.15); margin: 1.2em 0; }
     </style>
 </head>
-<body class="h-full bg-gradient-to-br from-gray-50 to-gray-100">
-    <div class="h-full flex flex-col">
+<body class="h-full bg-gray-950 font-sans text-gray-200">
+    <!-- Ambient background glow -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-cyan-500/[0.03] rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-blue-500/[0.03] rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="h-full flex flex-col relative z-10">
         <!-- Header -->
-        <header class="bg-white shadow-md border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+        <header class="glass border-b border-cyan-500/10">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                            <span class="text-3xl">🤖</span>
-                            <span>Jiri</span>
-                        </h1>
-                        <p class="text-sm text-gray-500 mt-1">Intelligent MCP Router with Dynamic Tool Discovery</p>
+                    <div class="flex items-center gap-3">
+                        <!-- Jiri Logo / Arc Reactor -->
+                        <div class="relative w-10 h-10 flex items-center justify-center">
+                            <div class="absolute inset-0 rounded-full bg-cyan-500/10 pulse-glow"></div>
+                            <div class="relative w-6 h-6 rounded-full bg-cyan-400/20 border border-cyan-400/40 flex items-center justify-center">
+                                <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-semibold text-cyan-50 tracking-wide">J I R I</h1>
+                            <p class="text-[11px] text-cyan-500/60 tracking-widest uppercase">Intelligent MCP Router</p>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <span id="status" class="px-4 py-2 text-sm font-medium rounded-full bg-gray-100 text-gray-600 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <span id="status" class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full bg-gray-800/60 text-gray-400 border border-gray-700/50">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-500"></span>
                             Connecting...
                         </span>
                     </div>
@@ -151,31 +157,36 @@
         </header>
 
         <!-- Main Content -->
-        <div class="flex-1 max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 w-full flex gap-6 overflow-hidden">
+        <div class="flex-1 max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 w-full flex gap-4 overflow-hidden">
             <!-- Chat Area -->
-            <div class="flex-1 flex flex-col bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+            <div class="flex-1 flex flex-col glass rounded-xl neon-border overflow-hidden">
                 <!-- Messages -->
-                <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-                    <div class="text-center text-gray-500 text-sm py-12">
-                        <div class="text-4xl mb-3">🤖</div>
-                        <div class="font-medium">Start a conversation</div>
-                        <div class="text-xs mt-1">Try: "How is MSFT stock doing?" or "What's the weather in Seattle?"</div>
+                <div id="messages" class="flex-1 overflow-y-auto p-5 space-y-4">
+                    <div class="text-center text-gray-500 text-sm py-16">
+                        <div class="relative w-16 h-16 mx-auto mb-4">
+                            <div class="absolute inset-0 rounded-full bg-cyan-500/5 pulse-glow"></div>
+                            <div class="relative w-full h-full rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center">
+                                <div class="w-4 h-4 rounded-full bg-cyan-400/40"></div>
+                            </div>
+                        </div>
+                        <div class="font-medium text-cyan-100/60">Systems Online</div>
+                        <div class="text-[11px] mt-1 text-cyan-500/40">Try: "How is MSFT stock doing?" or "Fetch https://example.com"</div>
                     </div>
                 </div>
 
                 <!-- Input Area -->
-                <div class="border-t border-gray-200 p-4 bg-white">
+                <div class="border-t border-cyan-500/10 p-4">
                     <form id="chatForm" class="flex gap-3">
                         <input
                             type="text"
                             id="queryInput"
-                            placeholder="Ask me anything... (e.g., How is MSFT stock doing?)"
-                            class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                            placeholder="Enter command..."
+                            class="flex-1 px-4 py-3 bg-gray-900/60 border border-cyan-500/15 rounded-lg text-gray-200 placeholder-gray-600 focus:ring-1 focus:ring-cyan-500/40 focus:border-cyan-500/30 focus:outline-none text-sm font-light transition-all"
                             autocomplete="off"
                         />
                         <button
                             type="submit"
-                            class="px-8 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md transition-all"
+                            class="px-6 py-3 bg-cyan-600/80 text-cyan-50 font-medium rounded-lg hover:bg-cyan-500/80 focus:ring-1 focus:ring-cyan-400/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm tracking-wide"
                             id="sendBtn"
                         >
                             Send
@@ -184,35 +195,35 @@
                 </div>
             </div>
 
-            <!-- Sidebar -->
-            <div class="w-80 flex flex-col gap-4">
-                <!-- Cached Servers -->
-                <div class="bg-white rounded-xl shadow-md border border-gray-200 p-5">
-                    <h2 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span class="text-xl">🗄️</span>
-                        <span>Cached Servers</span>
+            <!-- Right Sidebar -->
+            <div class="w-72 flex flex-col gap-4">
+                <!-- Active Tools HUD -->
+                <div class="glass rounded-xl neon-border p-4">
+                    <h2 class="text-xs font-semibold text-cyan-400/80 mb-3 flex items-center gap-2 tracking-widest uppercase">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400/60"></span>
+                        Active Tools
                     </h2>
                     <div id="cachedServers" class="space-y-2">
-                        <div class="text-sm text-gray-400 italic">No servers cached yet</div>
+                        <div class="text-xs text-gray-600 italic">No tools active</div>
                     </div>
                 </div>
 
-                <!-- Live Logs -->
-                <div class="flex-1 bg-white rounded-xl shadow-md border border-gray-200 p-5 flex flex-col overflow-hidden">
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                            <span class="text-xl">📋</span>
-                            <span>Live Logs</span>
+                <!-- Live Terminal -->
+                <div class="flex-1 glass rounded-xl neon-border p-4 flex flex-col overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-xs font-semibold text-green-400/70 flex items-center gap-2 tracking-widest uppercase">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400/60 blink"></span>
+                            Terminal
                         </h2>
                         <button
                             onclick="clearLogs()"
-                            class="text-xs px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg font-medium transition-colors"
+                            class="text-[10px] px-2 py-1 text-gray-600 hover:text-gray-300 hover:bg-gray-800/60 rounded font-medium transition-colors tracking-wide"
                         >
-                            Clear
+                            CLEAR
                         </button>
                     </div>
-                    <div id="logs" class="flex-1 overflow-y-auto space-y-1 font-mono text-xs bg-gray-50 rounded-lg p-3">
-                        <div class="text-gray-400 italic">Waiting for activity...</div>
+                    <div id="logs" class="flex-1 overflow-y-auto space-y-0.5 font-mono text-[11px] bg-black/30 rounded-lg p-3 leading-relaxed">
+                        <div class="text-gray-600 italic">Awaiting input...</div>
                     </div>
                 </div>
             </div>
@@ -276,18 +287,17 @@
         function updateStatus(text, color) {
             const status = document.getElementById('status');
             const colors = {
-                'green': 'bg-green-100 text-green-800 border border-green-300',
-                'red': 'bg-red-100 text-red-800 border border-red-300',
-                'gray': 'bg-gray-100 text-gray-600 border border-gray-300'
+                'green': 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
+                'red': 'bg-red-500/10 text-red-400 border-red-500/30',
+                'gray': 'bg-gray-800/60 text-gray-400 border-gray-700/50'
             };
-            status.className = `px-4 py-2 text-sm font-medium rounded-full shadow-sm ${colors[color] || colors.gray}`;
-            
-            const icons = {
-                'green': '✅',
-                'red': '❌',
-                'gray': '⏳'
+            const dotColors = {
+                'green': 'bg-cyan-400 pulse-glow',
+                'red': 'bg-red-400',
+                'gray': 'bg-gray-500'
             };
-            status.textContent = `${icons[color] || ''} ${text}`;
+            status.className = `flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-full border ${colors[color] || colors.gray}`;
+            status.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${dotColors[color] || dotColors.gray}"></span>${text}`;
         }
 
         function addMessage(content, role) {
@@ -299,35 +309,23 @@
             }
             
             const div = document.createElement('div');
-            div.className = role === 'user' 
-                ? 'flex justify-end' 
-                : role === 'error' 
-                    ? 'flex justify-center'
-                    : 'flex justify-start';
+            div.className = `${role === 'user' ? 'flex justify-end' : role === 'error' ? 'flex justify-center' : 'flex justify-start'} fade-in`;
             
-            const colors = {
-                'user': 'bg-blue-600 text-white shadow-md',
-                'assistant': 'bg-white text-gray-900 border border-gray-200 shadow-md',
-                'error': 'bg-red-50 text-red-800 border border-red-200'
-            };
+            let bubbleClass, messageContent;
             
-            let messageContent;
-            if (role === 'assistant') {
-                // Parse markdown for assistant messages
+            if (role === 'user') {
+                bubbleClass = 'bg-cyan-600/70 text-cyan-50 border border-cyan-500/20';
+                messageContent = `<div class="text-sm">${escapeHtml(content)}</div>`;
+            } else if (role === 'assistant') {
+                bubbleClass = 'bg-gray-800/50 text-gray-200 border border-cyan-500/10';
                 const parsed = marked.parse(content);
                 messageContent = `<div class="markdown-content">${parsed}</div>`;
-            } else if (role === 'user') {
-                messageContent = `<div class="text-sm font-medium">${escapeHtml(content)}</div>`;
             } else {
-                // Error messages
+                bubbleClass = 'bg-red-500/10 text-red-300 border border-red-500/20';
                 messageContent = `<div class="text-sm">${escapeHtml(content)}</div>`;
             }
             
-            div.innerHTML = `
-                <div class="${colors[role]} rounded-xl px-5 py-3 max-w-[85%]">
-                    ${messageContent}
-                </div>
-            `;
+            div.innerHTML = `<div class="${bubbleClass} rounded-xl px-4 py-3 max-w-[85%]">${messageContent}</div>`;
             
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
@@ -337,21 +335,21 @@
             const logs = document.getElementById('logs');
             
             // Remove placeholder
-            if (logs.children.length === 1 && logs.children[0].classList.contains('text-gray-400')) {
+            if (logs.children.length === 1 && logs.children[0].classList.contains('text-gray-600')) {
                 logs.innerHTML = '';
             }
             
             const colors = {
-                'discovery': 'text-purple-700 font-medium',
-                'success': 'text-green-700 font-medium',
-                'error': 'text-red-700 font-semibold',
-                'warning': 'text-yellow-700 font-medium',
-                'user': 'text-blue-700 font-semibold',
-                'info': 'text-gray-700'
+                'discovery': 'text-cyan-400',
+                'success': 'text-green-400',
+                'error': 'text-red-400 font-medium',
+                'warning': 'text-amber-400',
+                'user': 'text-blue-400 font-medium',
+                'info': 'text-gray-500'
             };
             
             const div = document.createElement('div');
-            div.className = `${colors[type] || colors.info} py-1 leading-relaxed`;
+            div.className = `${colors[type] || colors.info} py-0.5`;
             div.textContent = message;
             
             logs.appendChild(div);
@@ -367,7 +365,7 @@
             const container = document.getElementById('cachedServers');
             
             if (!servers || servers.length === 0) {
-                container.innerHTML = '<div class="text-sm text-gray-400 italic">No servers cached yet</div>';
+                container.innerHTML = '<div class="text-xs text-gray-600 italic">No tools active</div>';
                 return;
             }
             
@@ -376,14 +374,14 @@
                 const url = server.url || server;
                 
                 return `
-                <div class="group relative">
-                    <div class="text-xs px-3 py-2.5 bg-gradient-to-br from-blue-50 to-blue-100 text-blue-900 rounded-lg border border-blue-200 font-medium hover:shadow-md transition-all">
+                <div class="group relative fade-in">
+                    <div class="text-xs px-3 py-2 bg-cyan-500/5 text-cyan-300/80 rounded-lg border border-cyan-500/10 hover:border-cyan-500/25 transition-all">
                         <div class="flex items-center gap-2">
-                            <span class="text-blue-600">🔗</span>
+                            <span class="w-1 h-1 rounded-full bg-cyan-400/60"></span>
                             <span class="truncate">${escapeHtml(name)}</span>
                         </div>
                     </div>
-                    <div class="absolute left-0 top-full mt-1 w-full bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                    <div class="absolute left-0 top-full mt-1 w-full bg-gray-900 text-gray-400 text-[10px] px-2 py-1 rounded border border-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none font-mono">
                         ${escapeHtml(url)}
                     </div>
                 </div>
@@ -392,7 +390,7 @@
 
         function clearLogs() {
             const logs = document.getElementById('logs');
-            logs.innerHTML = '<div class="text-gray-400 italic">Logs cleared</div>';
+            logs.innerHTML = '<div class="text-gray-600 italic">Logs cleared</div>';
         }
 
         function escapeHtml(text) {
