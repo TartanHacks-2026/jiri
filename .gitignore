@@ -74,4 +74,3 @@ test_*.sh
 setup_dedalus.sh
 QUICKSTART.md
 DEDALUS_README.md
-.agent/
